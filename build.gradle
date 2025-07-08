@@ -41,6 +41,9 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
+    // MySQL
+    runtimeOnly 'com.mysql:mysql-connector-j'
+
     // JWT
     implementation 'io.jsonwebtoken:jjwt-api:0.11.2'
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.0")

@@ -18,7 +18,9 @@ public enum AuthErrorStatus implements BaseCodeInterface {
     EXPIRED_REFRESH_TOKEN(HttpStatus.BAD_REQUEST, "AUTH005", "만료된 REFRESH TOKEN입니다."),
     INVALID_ACCESS_TOKEN(HttpStatus.BAD_REQUEST, "AUTH005", "유효하지 않은 ACCESS TOKEN입니다."),
     INVALID_REFRESH_TOKEN(HttpStatus.BAD_REQUEST, "AUTH006", "유효하지 않은 REFRESH TOKEN입니다."),
-    FAILED_SOCIAL_LOGIN(HttpStatus.INTERNAL_SERVER_ERROR, "AUTH007", "소셜 로그인에 실패하였습니다.")
+    FAILED_SOCIAL_LOGIN(HttpStatus.INTERNAL_SERVER_ERROR, "AUTH007", "소셜 로그인에 실패하였습니다."),
+    LOGIN_ERROR(HttpStatus.BAD_REQUEST, "AUTH008", "잘못된 아이디 혹은 비밀번호입니다."),
+    ALREADY_REGISTERED_EMAIL(HttpStatus.BAD_REQUEST, "AUTH009", "이미 가입된 이메일입니다.")
     ;
 
     private final HttpStatus httpStatus;
