@@ -1,0 +1,11 @@
+jwt:
+  key: jhqwlekfjnasu23fjknsp8vne14sgd
+  access:
+    expiration: 360000
+
+exclude-auth-path-patterns:
+  paths:
+    - path-pattern: /api/users/sign-up
+      method: POST
+    - path-pattern: /api/users/login
+      method: POST
