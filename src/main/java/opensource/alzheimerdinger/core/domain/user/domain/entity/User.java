@@ -7,9 +7,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
+@Getter
 @Table(name = "users")
 @AllArgsConstructor
 @NoArgsConstructor
@@ -25,5 +27,5 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    private Role role
+    private Role role;
 }

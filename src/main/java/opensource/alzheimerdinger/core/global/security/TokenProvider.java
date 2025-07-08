@@ -7,6 +7,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import opensource.alzheimerdinger.core.domain.user.domain.entity.Role;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -35,7 +36,7 @@ public class TokenProvider {
     private static final String ID_CLAIM = "id";
     private static final String ROLE_CLAIM = "role";
 
-    public String createAccessToken(String id) {    // todo: param Role
+    public String createAccessToken(String id, Role role) {    // todo: param Role
         Date now = new Date();
         return Jwts.builder()
                 .setHeaderParam(Header.TYPE, Header.JWT_TYPE)
@@ -48,12 +49,12 @@ public class TokenProvider {
                 ))
                 .setSubject(ACCESS_TOKEN_SUBJECT)
                 .claim(ID_CLAIM, id)
-                .claim(ROLE_CLAIM, "ROLE_USER")
+                .claim(ROLE_CLAIM, role)
                 .signWith(Keys.hmacShaKeyFor(jwtProperties.getKey().getBytes(StandardCharsets.UTF_8)), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public String createRefreshToken(String id) {
+    public String createRefreshToken(String id, Role role) {
         Date now = new Date();
         return Jwts.builder()
                 .setHeaderParam(Header.TYPE, Header.JWT_TYPE)
@@ -66,7 +67,7 @@ public class TokenProvider {
                 ))
                 .setSubject(REFRESH_TOKEN_SUBJECT)
                 .claim(ID_CLAIM, id)
-                .claim(ROLE_CLAIM, "ROLE_USER")
+                .claim(ROLE_CLAIM, role)
                 .signWith(Keys.hmacShaKeyFor(jwtProperties.getKey().getBytes(StandardCharsets.UTF_8)), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -91,6 +92,14 @@ public class TokenProvider {
     public Optional<String> getId(String token) {
         try {
             return Optional.ofNullable(getClaims(token).get(ID_CLAIM, String.class));
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+    }
+
+    public Optional<Role> getRole(String token) {
+        try {
+            return Optional.ofNullable(getClaims(token).get(ROLE_CLAIM, Role.class));
         } catch (Exception e) {
             return Optional.empty();
         }
