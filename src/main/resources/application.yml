@@ -1,5 +1,20 @@
+spring:
+  datasource:
+    username: ${USERNAME}
+    url: ${URL}
+    password: ${password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database: mysql
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    open-in-view: false
+
+
 jwt:
-  key: jhqwlekfjnasu23fjknsp8vne14sgd
+  key: fdsafdsafdsafdsafdsafdsafdsafdsafdsafdsafda
   access:
     expiration: 360000
 
