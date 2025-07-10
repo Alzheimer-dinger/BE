@@ -4,11 +4,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.domain.user.domain.service.TokenLifecycleService;
+import opensource.alzheimerdinger.core.global.common.BaseResponse;
+import opensource.alzheimerdinger.core.global.exception.RestApiException;
 import opensource.alzheimerdinger.core.global.security.TokenProvider;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import static jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
+import static opensource.alzheimerdinger.core.global.exception.code.status.AuthErrorStatus.*;
 
 @Component
 @RequiredArgsConstructor
@@ -19,20 +22,16 @@ public class JwtBlacklistInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+        // 유저 정보 조회
         String token = tokenProvider.getToken(request)
-                .orElse(null);
+                .orElseThrow(() -> new RestApiException(EMPTY_JWT));
 
         String userId = tokenProvider.getId(token)
-                .orElse(null);
+                .orElseThrow(() -> new RestApiException(INVALID_ID_TOKEN));
 
-        if(token == null && userId == null) {
-            response.setStatus(SC_UNAUTHORIZED);
-            return false;
-        }
-
+        // 블랙리스트 검사
         if (tokenLifecycleService.isBlacklistToken(userId, token)) {
-            response.setStatus(SC_UNAUTHORIZED);
-            return false;
+            throw new RestApiException(EXPIRED_MEMBER_JWT);
         }
 
         return true;
