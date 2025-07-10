@@ -15,6 +15,8 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collections;
@@ -36,7 +38,7 @@ public class TokenProvider {
     private static final String ID_CLAIM = "id";
     private static final String ROLE_CLAIM = "role";
 
-    public String createAccessToken(String id, Role role) {    // todo: param Role
+    public String createAccessToken(String id, Role role) {
         Date now = new Date();
         return Jwts.builder()
                 .setHeaderParam(Header.TYPE, Header.JWT_TYPE)
@@ -107,8 +109,8 @@ public class TokenProvider {
 
     public Optional<String> getToken(HttpServletRequest request) {
         return Optional.ofNullable(request.getHeader(TOKEN_HEADER))
-                .filter(refreshToken -> refreshToken.startsWith(BEARER))
-                .map(refreshToken -> refreshToken.replace(BEARER, ""));
+                .filter(token -> token.startsWith(BEARER))
+                .map(token -> token.replace(BEARER, ""));
     }
 
     private Claims getClaims(String token) {
@@ -116,5 +118,18 @@ public class TokenProvider {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    public Optional<Date> getExpiration(String token) {
+        try {
+            return Optional.ofNullable(getClaims(token).getExpiration());
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+    }
+
+    public Optional<Duration> getRemainingDuration(String token) {
+        return getExpiration(token)
+                .map(date -> Duration.between(Instant.now(), date.toInstant()));
     }
 }
