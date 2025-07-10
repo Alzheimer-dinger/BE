@@ -35,8 +35,8 @@ public class TokenLifecycleService {
         return Objects.equals(savedToken, accessToken);
     }
 
-    public boolean existsByRefreshToken(String userId, String refreshToken) {
-        String savedToken = redisTemplate.opsForValue().get(refreshTokenPrefix + userId);
+    public boolean isBlacklistToken(String userId, String refreshToken) {
+        String savedToken = redisTemplate.opsForValue().get(blacklistPrefix + accessTokenPrefix + userId);
 
         // 존재하지 않는다면 false
         if(savedToken == null)
@@ -54,7 +54,7 @@ public class TokenLifecycleService {
         redisTemplate.delete(accessTokenPrefix + userId);
     }
 
-    public void saveBlacklist(String userId, String accessToken) {
-        redisTemplate.opsForSet().add(blacklistPrefix + accessTokenPrefix + userId, accessToken);
+    public void saveBlacklist(String userId, String accessToken, Duration expiration) {
+        redisTemplate.opsForValue().set(blacklistPrefix + accessTokenPrefix + userId, accessToken, expiration);
     }
 }
