@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import opensource.alzheimerdinger.core.domain.user.domain.service.TokenLifecycleService;
 import opensource.alzheimerdinger.core.global.exception.RestApiException;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.server.PathContainer;
@@ -15,15 +16,16 @@ import org.springframework.web.util.pattern.PathPatternParser;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.time.Duration;
 
-import static opensource.alzheimerdinger.core.global.exception.code.status.AuthErrorStatus.EMPTY_JWT;
-import static opensource.alzheimerdinger.core.global.exception.code.status.AuthErrorStatus.INVALID_ACCESS_TOKEN;
+import static opensource.alzheimerdinger.core.global.exception.code.status.AuthErrorStatus.*;
 
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final TokenProvider tokenProvider;
     private final ExcludeAuthPathProperties excludeAuthPathProperties;
+    private final TokenLifecycleService tokenLifecycleService;
 
     private static final PathPatternParser pathPatternParser = new PathPatternParser();
 
@@ -35,13 +37,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
 
-            tokenProvider.getToken(request).ifPresentOrElse(token -> {
-                if (tokenProvider.validateToken(token))
-                    setAuthentication(token);
-                else throw new RestApiException(INVALID_ACCESS_TOKEN);
-            },()-> {
-                throw new RestApiException(EMPTY_JWT);
-            });
+            String token = tokenProvider.getToken(request)
+                    .orElseThrow(() -> new RestApiException(EMPTY_JWT));
+
+            String userId = tokenProvider.getId(token)
+                    .orElseThrow(() -> new RestApiException(INVALID_ID_TOKEN));
+
+            // 토큰 캐시 확인
+            if (tokenLifecycleService.existsByAccessToken(userId, token)) {
+                setAuthentication(token);
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            // 토큰 검증
+            if(tokenProvider.validateToken(token))
+                setAuthentication(token);
+            else
+                throw new RestApiException(INVALID_ACCESS_TOKEN);
+
+            // 토큰 캐시
+            tokenLifecycleService.saveAccessToken(userId, token, Duration.ofSeconds(30));
 
             filterChain.doFilter(request, response);
         } catch (RestApiException e) {

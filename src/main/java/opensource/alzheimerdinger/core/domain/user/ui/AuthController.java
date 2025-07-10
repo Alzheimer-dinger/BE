@@ -7,6 +7,7 @@ import opensource.alzheimerdinger.core.domain.user.application.dto.request.Login
 import opensource.alzheimerdinger.core.domain.user.application.dto.request.SignUpRequest;
 import opensource.alzheimerdinger.core.domain.user.application.dto.response.LoginResponse;
 import opensource.alzheimerdinger.core.domain.user.application.usecase.UserAuthUseCase;
+import opensource.alzheimerdinger.core.global.annotation.CurrentUser;
 import opensource.alzheimerdinger.core.global.common.BaseResponse;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,7 +39,7 @@ public class AuthController {
     }
 
     @GetMapping("/test")
-    public BaseResponse<Void> test() {
-        return BaseResponse.onSuccess();
+    public BaseResponse<String> test(@CurrentUser String userId) {
+        return BaseResponse.onSuccess(userId);
     }
 }
