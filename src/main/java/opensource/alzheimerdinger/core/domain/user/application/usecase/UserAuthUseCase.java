@@ -63,9 +63,12 @@ public class UserAuthUseCase {
         String userId = tokenProvider.getId(accessToken)
                 .orElseThrow(() -> new RestApiException(INVALID_ID_TOKEN));
 
+        Duration expiration = tokenProvider.getRemainingDuration(accessToken)
+                .orElseThrow(() -> new RestApiException(INVALID_ACCESS_TOKEN));
+
         // 캐싱 및 저장된 토큰 삭제 후 기존 사용하던 엑세스 토큰 무효화 등록
         tokenLifecycleService.deleteAccessToken(userId);
         tokenLifecycleService.deleteRefreshToken(userId);
-        tokenLifecycleService.saveBlacklist(userId, accessToken);
+        tokenLifecycleService.saveBlacklist(userId, accessToken, expiration);
     }
 }
