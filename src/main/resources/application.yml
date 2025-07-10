@@ -4,10 +4,14 @@ spring:
     url: ${URL}
     password: ${password}
     driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     database: mysql
     database-platform: org.hibernate.dialect.MySQL8Dialect
     open-in-view: false
@@ -19,6 +23,13 @@ jwt:
     expiration: 360000
 
 exclude-auth-path-patterns:
+  paths:
+    - path-pattern: /api/users/sign-up
+      method: POST
+    - path-pattern: /api/users/login
+      method: POST
+
+exclude-blacklist-path-patterns:
   paths:
     - path-pattern: /api/users/sign-up
       method: POST
