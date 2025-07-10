@@ -37,7 +37,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             tokenProvider.getToken(request).ifPresentOrElse(token -> {
                 if (tokenProvider.validateToken(token))
-                    // todo: Access & Refresh 구분
                     setAuthentication(token);
                 else throw new RestApiException(INVALID_ACCESS_TOKEN);
             },()-> {
