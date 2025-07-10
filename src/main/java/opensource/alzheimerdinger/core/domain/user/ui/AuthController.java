@@ -31,6 +31,7 @@ public class AuthController {
         return BaseResponse.onSuccess(userAuthUseCase.login(request));
     }
 
+    @DeleteMapping("/logout")
     public BaseResponse<Void> logout(HttpServletRequest request) {
         userAuthUseCase.logout(request);
         return BaseResponse.onSuccess();
