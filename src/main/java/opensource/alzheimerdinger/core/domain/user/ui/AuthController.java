@@ -1,5 +1,6 @@
 package opensource.alzheimerdinger.core.domain.user.ui;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.domain.user.application.dto.request.LoginRequest;
@@ -16,6 +17,9 @@ public class AuthController {
 
     private final UserAuthUseCase userAuthUseCase;
 
+    /**
+     *  회원가입 (보호자는 ROLE_GUARDIAN, 피보호자는 ROLE_PATIENT)
+     */
     @PostMapping("/sign-up")
     public BaseResponse<Void> signUp(@RequestBody @Valid SignUpRequest request) {
         userAuthUseCase.signUp(request);
@@ -25,6 +29,11 @@ public class AuthController {
     @PostMapping("/login")
     public BaseResponse<LoginResponse> login(@RequestBody @Valid LoginRequest request) {
         return BaseResponse.onSuccess(userAuthUseCase.login(request));
+    }
+
+    public BaseResponse<Void> logout(HttpServletRequest request) {
+        userAuthUseCase.logout(request);
+        return BaseResponse.onSuccess();
     }
 
     @GetMapping("/test")

@@ -27,7 +27,7 @@ public class UserService {
         return userRepository.existsByEmail(email);
     }
 
-    public void signUp(SignUpRequest request) {
+    public void save(SignUpRequest request) {
         userRepository.save(
                 User.builder()
                         .email(request.email())
