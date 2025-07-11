@@ -5,6 +5,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 @Document(collection = "transcripts")
 @Getter
@@ -17,7 +18,7 @@ public class Transcript {
     private String id;
     private String sessionId;
     private int sessionSeq;
-    private String conversationDate;
+    private LocalDate conversationDate;
     private Speaker speaker;
     private String script;
     private Instant timestamp;
