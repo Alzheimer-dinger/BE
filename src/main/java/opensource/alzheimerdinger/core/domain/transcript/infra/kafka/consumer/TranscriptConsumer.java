@@ -18,8 +18,8 @@ public class TranscriptConsumer {
     private final TranscriptService transcriptService;
 
     @KafkaListener(
-            topics = "${kafka.topics.transcript}",
-            groupId = "${kafka.consumer.group-id}"
+            topics = "${spring.kafka.topics.transcript}",
+            groupId = "${spring.kafka.consumer.group-id}"
     )
     public void listen(@Payload String message) {
         try {
