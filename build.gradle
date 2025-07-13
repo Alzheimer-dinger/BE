@@ -69,7 +69,9 @@ dependencies {
     testImplementation 'org.awaitility:awaitility:4.2.0'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-    testImplementation 'org.testcontainers:mongodb'
+    testImplementation 'com.h2database:h2'
+    testImplementation 'org.testcontainers:mongodb:1.19.7'
+    testImplementation 'org.testcontainers:junit-jupiter:1.19.7'
 
 
 }
