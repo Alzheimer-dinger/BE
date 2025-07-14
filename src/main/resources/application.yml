@@ -16,6 +16,15 @@ spring:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     open-in-view: false
 
+  batch:
+    job:
+      enabled: false
+    jdbc:
+      initialize-schema: always
+      table-prefix: BATCH_
+    execution:
+      isolation-level-for-create: SERIALIZABLE
+
 
 jwt:
   key: fdsafdsafdsafdsafdsafdsafdsafdsafdsafdsafda
