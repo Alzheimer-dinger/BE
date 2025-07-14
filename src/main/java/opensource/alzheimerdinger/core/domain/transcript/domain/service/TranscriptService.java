@@ -8,6 +8,7 @@ import opensource.alzheimerdinger.core.domain.transcript.domain.repository.Trans
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @RequiredArgsConstructor
 @Service
@@ -20,7 +21,6 @@ public class TranscriptService {
                 .conversationDate(request.getConversationDate())
                 .speaker(Speaker.valueOf(request.getSpeaker().toUpperCase()))
                 .script(request.getScript())
-                .timestamp(Instant.parse(request.getTimestamp()))
                 .build();
         return repository.save(entity);
     }
