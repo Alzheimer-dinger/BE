@@ -19,6 +19,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -57,10 +58,9 @@ class TranscriptConsumerTest {
         TranscriptRequest request = new TranscriptRequest();
         request.setSessionId("test-session");
         request.setSessionSeq(1);
-        request.setConversationDate(LocalDate.of(2024, 7, 13));
+        request.setConversationDate(LocalDateTime.of(2024, 7, 13, 0, 0));
         request.setSpeaker("CLIENT");
         request.setScript("이것은 테스트 스크립트입니다.");
-        request.setTimestamp("2024-07-13T13:00:00Z");
 
         // JSON 직렬화
         String message = objectMapper.writeValueAsString(request);
