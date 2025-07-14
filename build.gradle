@@ -46,6 +46,9 @@ dependencies {
     // MySQL
     runtimeOnly 'com.mysql:mysql-connector-j'
 
+    // MongoDB
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+
     // JWT
     implementation 'io.jsonwebtoken:jjwt-api:0.11.2'
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.0")
@@ -65,7 +68,13 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'io.projectreactor:reactor-test'
     testImplementation 'org.springframework.kafka:spring-kafka-test'
+    testImplementation 'org.awaitility:awaitility:4.2.0'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'com.h2database:h2'
+    testImplementation 'org.testcontainers:mongodb:1.19.7'
+    testImplementation 'org.testcontainers:junit-jupiter:1.19.7'
+
 
 }
 

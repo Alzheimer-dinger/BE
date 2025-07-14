@@ -8,6 +8,8 @@ spring:
     redis:
       host: localhost
       port: 6379
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/alzheimerdinger}
 
   jpa:
     hibernate:
@@ -24,6 +26,13 @@ spring:
       table-prefix: BATCH_
     execution:
       isolation-level-for-create: SERIALIZABLE
+      
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP:transcript-consumer-group}
+    topics:
+      transcript: ${KAFKA_TOPIC_TRANSCRIPT:ai-transcript}
 
 
 jwt:
