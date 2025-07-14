@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import opensource.alzheimerdinger.core.domain.batch.domain.entity.XXXEntity;
 import org.springframework.batch.item.ItemReader;
-import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
 import org.springframework.stereotype.Component;
 

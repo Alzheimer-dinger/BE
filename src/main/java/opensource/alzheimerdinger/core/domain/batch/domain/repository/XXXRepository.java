@@ -13,6 +13,7 @@ import java.util.Optional;
 @Repository
 public interface XXXRepository extends JpaRepository<XXXEntity, String> {
 
+    //추후 JDBC 쿼리 사용 예정 및 query 문 직접 작성 예정
     Optional<XXXEntity> findById(String id);
     Page<XXXEntity> findByStatus(String status, Pageable pageable);
     Page<XXXEntity> findByCreatedDateAfter(LocalDateTime date, Pageable pageable);

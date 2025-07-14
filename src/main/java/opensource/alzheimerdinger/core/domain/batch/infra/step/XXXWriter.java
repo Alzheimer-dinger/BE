@@ -7,8 +7,6 @@ import opensource.alzheimerdinger.core.domain.batch.domain.service.XXXService;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 @Slf4j
 @Component
 @RequiredArgsConstructor
