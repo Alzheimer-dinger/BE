@@ -59,28 +59,37 @@ jobs:
           summary:     ${{ github.event.issue.title }}
           description: ${{ steps.md2jira.outputs.output-text }}
 
+      # 6) Jira 이슈에 GitHub 이슈 번호 남기기 (댓글)
       - name: Comment on Jira issue with GitHub issue number
         uses: atlassian/gajira-comment@v3
         with:
           issue: ${{ steps.create.outputs.issue }}
           body: 'GitHub Issue: ${{ github.event.issue.number }}'
-          
-      # Jira에서 백로그 -> 할 일 전환
+
+      # 7) GitHub 이슈 제목에 JIRA 키 추가
+      - name: Update GitHub issue title with JIRA key
+        uses: actions-cool/issues-helper@v3
+        with:
+          actions: update-issue
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: '[${{ steps.create.outputs.issue }}] ${{ github.event.issue.title }}'
+
+      # 8) Jira에서 백로그 → 할 일 전환
       - name: Move Jira issue to To Do
         uses: atlassian/gajira-transition@v3
         with:
           issue:      ${{ steps.create.outputs.issue }}
           transition: '해야 할 일'
 
-      # 6) Git 브랜치 생성 & 푸시
+      # 9) Git 브랜치 생성 & 푸시
       - name: Create branch from JIRA key
         run: |
-          JIRA_KEY="${{ steps.create.outputs.issue }}"    # ex. OPS-21
+          JIRA_KEY="${{ steps.create.outputs.issue }}"
           BRANCH="feature/${JIRA_KEY}"
           git checkout -b "${BRANCH}"
           git push --set-upstream origin "${BRANCH}"
 
-      # 7) 자동 Pull Request 생성
+      # 10) 자동 Pull Request 생성
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
