@@ -1,5 +1,5 @@
 ---
-name: jira-issue-template.yml
+name: Jira Issue Template
 about: 지라 연동 이슈 생성
 title: "[FEATURE]"
 labels: ''
