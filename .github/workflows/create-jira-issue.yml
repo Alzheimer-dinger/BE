@@ -8,41 +8,36 @@ on:
       - opened
 jobs:
   create-issue:
-    name: Create Jira issue
     runs-on: ubuntu-latest
-    steps:
-      - name: Login
-        uses: atlassian/gajira-login@v3
-        env:
-          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
-          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
-          JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
+    permissions:
+      contents: write
 
-      - name: Checkout main
+    steps:
+      - name: Checkout develop
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: develop
           persist-credentials: true
 
+      - name: Login to Jira
+        uses: atlassian/gajira-login@v3
+        env:
+          JIRA_BASE_URL:   ${{ secrets.JIRA_BASE_URL }}
+          JIRA_API_TOKEN:  ${{ secrets.JIRA_API_TOKEN }}
+          JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
+
       - name: Issue Parser
-        uses: stefanbuck/github-issue-praser@v3
         id: issue-parser
+        uses: stefanbuck/github-issue-praser@v3
         with:
           template-path: .github/ISSUE_TEMPLATE/jira-issue-template.yml
 
-      - name: Log Issue Parser
-        run: |
-          echo "${{ steps.issue-parser.outputs.issueparser_ticketNumber }}"
-          echo "${{ steps.issue-parser.outputs.jsonString }}"
-
-      - name: Convert markdown to Jira Syntax
-        uses: peter-evans/jira2md@v1
+      - name: Convert to Jira format
         id: md2jira
+        uses: peter-evans/jira2md@v1
         with:
           input-text: |
-            ### Github Issue Link
             - ${{ github.event.issue.html_url }}
-
             ${{ github.event.issue.body }}
           mode: md2jira
 
@@ -52,38 +47,12 @@ jobs:
         with:
           project: OPS
           issuetype: Task
-          summary: ${{ github.event.issue.title }}
+          summary:     ${{ github.event.issue.title }}
           description: ${{ steps.md2jira.outputs.output-text }}
 
-      - name: Log created issue
-        run: echo "Jira Issue ${{ steps.issue-parser.outputs.issueparser_ticketNumber }}/${{ steps.create.outputs.issue }} was created"
-
-      - name: Checkout develop
-        uses: actions/checkout@v4
-        with:
-          ref: develop
-          persist-credentials: true
-
-      - name: Create branch from ticket number
-        if: ${{ steps.create.outputs.issue != '' }}
+      - name: Create branch from JIRA key
         run: |
-          TICKET="${{ steps.issue-parser.outputs.issueparser_ticketNumber }}"   # OPS-14
-          BRANCH_NAME="feature/${TICKET}"
-          git checkout -b "${BRANCH_NAME}"
-          git push --set-upstream origin "${BRANCH_NAME}"
-
-      - name: Update issue title
-        uses: actions-cool/issues-helper@v3
-        with:
-          actions: 'update-issue'
-          token: ${{ secrets.GITHUB_TOKEN }}
-          title: '[${{ steps.create.outputs.issue }}] ${{ github.event.issue.title }}'
-
-      - name: Add comment with Jira issue link
-        uses: actions-cool/issues-helper@v3
-        with:
-          actions: 'create-comment'
-          token: ${{ secrets.GITHUB_TOKEN }}
-          issue-number: ${{ github.event.issue.number }}
-          body: 'Jira Issue Created: [${{ steps.create.outputs.issue }}](${{ secrets.JIRA_BASE_URL }}/browse/${{ steps.create.outputs.issue }})'
-      
+          JIRA_KEY="${{ steps.create.outputs.issue }}"       # ex. OPS-21
+          BRANCH="feature/${JIRA_KEY}"
+          git checkout -b "${BRANCH}"
+          git push --set-upstream origin "${BRANCH}"
