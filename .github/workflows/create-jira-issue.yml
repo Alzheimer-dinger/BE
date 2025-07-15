@@ -39,3 +39,11 @@ jobs:
           BRANCH="feature/${JIRA_KEY}"
           git checkout -b "${BRANCH}"
           git push --set-upstream origin "${BRANCH}"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: "[${{ steps.create.outputs.issue }}] ${{ github.event.issue.title }}"
+          base: develop
+          branch: feature/${{ steps.create.outputs.issue }}
