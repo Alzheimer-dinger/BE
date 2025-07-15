@@ -58,6 +58,13 @@ jobs:
           issuetype: Task
           summary:     ${{ github.event.issue.title }}
           description: ${{ steps.md2jira.outputs.output-text }}
+          
+      # Jira에서 백로그 -> 할 일 전환
+      - name: Move Jira issue to To Do
+        uses: atlassian/gajira-transition@v3
+        with:
+          issue:      ${{ steps.create.outputs.issue }}
+          transition: '해야 할 일'
 
       # 6) Git 브랜치 생성 & 푸시
       - name: Create branch from JIRA key
