@@ -58,6 +58,12 @@ jobs:
           issuetype: Task
           summary:     ${{ github.event.issue.title }}
           description: ${{ steps.md2jira.outputs.output-text }}
+
+      - name: Comment on Jira issue with GitHub issue number
+        uses: atlassian/gajira-comment@v3
+        with:
+          issue: ${{ steps.create.outputs.issue }}
+          body: 'GitHub Issue: ${{ github.event.issue.number }}'
           
       # Jira에서 백로그 -> 할 일 전환
       - name: Move Jira issue to To Do
