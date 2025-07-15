@@ -3,8 +3,6 @@ description: '개발 이슈 생성'
 title: '[FEAT] 이슈 제목을 작성해주세요'
 labels:
   - feature
-assignees:
-  - KoungQ
 body:
   - type: textarea
     id: implementation
