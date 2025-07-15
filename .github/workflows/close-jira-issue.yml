@@ -17,11 +17,21 @@ jobs:
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
           JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
 
-      - name: Extract Jira issue key from GitHub issue title
+      - name: GitHub 이슈 제목에서 JIRA 키 추출
         id: extract-key
+        shell: bash
         run: |
+          # 1) 오류 발생해도 스크립트 중단하지 않기
+          set +e
+      
           ISSUE_TITLE="${{ github.event.issue.title }}"
-          JIRA_KEY=$(echo "$ISSUE_TITLE" | grep -oE '[A-Z]+-[0-9]+')
+          echo "ISSUE_TITLE='$ISSUE_TITLE'"
+      
+          # 2) OPS-123 형식 키 추출, 없으면 빈 문자열
+          JIRA_KEY=$(echo "$ISSUE_TITLE" | grep -oE '[A-Z]+-[0-9]+' || true)
+          echo "Extracted JIRA_KEY='$JIRA_KEY'"
+      
+          # 3) 후속 단계에서 사용하기 위해 환경 변수에 기록
           echo "JIRA_KEY=$JIRA_KEY" >> $GITHUB_ENV
 
       - name: Close Jira issue
