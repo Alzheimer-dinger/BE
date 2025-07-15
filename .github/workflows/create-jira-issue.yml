@@ -5,6 +5,7 @@ on:
 
 permissions:
   contents: write   # 브랜치 푸시 및 PR 생성 권한
+  issues: write  # 이슈 수정 권한
 
 jobs:
   create-issue:
