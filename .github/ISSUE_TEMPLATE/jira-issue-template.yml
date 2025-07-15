@@ -7,15 +7,6 @@ assignees: []   # 지정할 assignee가 없으면 빈 배열로 두거나, 이 �
 
 body:
   - type: input
-    id: ticketNumber
-    attributes:
-      label: '🎟️ 티켓 번호 (Ticket Number)'
-      description: '작업의 Ticket Number를 기입해주세요'
-      placeholder: 'OPS-00'
-    validations:
-      required: true
-
-  - type: input
     id: branch
     attributes:
       label: '🌳 브랜치명 (Branch)'
