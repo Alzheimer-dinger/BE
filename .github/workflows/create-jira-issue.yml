@@ -1,3 +1,6 @@
+permissions:
+  contents: write
+
 name: Create Jira issue
 on:
   issues:
@@ -15,10 +18,11 @@ jobs:
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
           JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
 
-      - name: Checkout main code
+      - name: Checkout main
         uses: actions/checkout@v4
         with:
           ref: main
+          persist-credentials: true
 
       - name: Issue Parser
         uses: stefanbuck/github-issue-praser@v3
@@ -54,18 +58,19 @@ jobs:
       - name: Log created issue
         run: echo "Jira Issue ${{ steps.issue-parser.outputs.issueparser_ticketNumber }}/${{ steps.create.outputs.issue }} was created"
 
-      - name: Checkout develop code
+      - name: Checkout develop
         uses: actions/checkout@v4
         with:
           ref: develop
+          persist-credentials: true
 
-      - name: Create branch with Ticket number
+      - name: Create branch from ticket number
+        if: ${{ steps.create.outputs.issue != '' }}
         run: |
-          ISSUE_NUMBER="${{ steps.create.outputs.issue }}"
-          ISSUE_TITLE="${{ steps.issue-parser.outputs.issueparser_branch}}"
-          BRANCH_NAME="${ISSUE_NUMBER}-$(echo ${ISSUE_TITLE} | sed 's/ /-/g')"
+          TICKET="${{ steps.issue-parser.outputs.issueparser_ticketNumber }}"   # OPS-14
+          BRANCH_NAME="feature/${TICKET}"
           git checkout -b "${BRANCH_NAME}"
-          git push origin "${BRANCH_NAME}"
+          git push --set-upstream origin "${BRANCH_NAME}"
 
       - name: Update issue title
         uses: actions-cool/issues-helper@v3
