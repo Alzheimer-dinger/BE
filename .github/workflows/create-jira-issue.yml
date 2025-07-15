@@ -75,6 +75,12 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           title: '[${{ steps.create.outputs.issue }}] ${{ github.event.issue.title }}'
 
+      - name: List available transitions
+        id: list-transitions
+        uses: atlassian/gajira-get-transitions@v3
+        with:
+          issue: ${{ steps.create.outputs.issue }}
+
       # 8) Jira에서 백로그 → 할 일 전환
       - name: Move Jira issue to To Do
         uses: atlassian/gajira-transition@v3
