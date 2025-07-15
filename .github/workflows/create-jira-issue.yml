@@ -75,11 +75,17 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           title: '[${{ steps.create.outputs.issue }}] ${{ github.event.issue.title }}'
 
-      - name: List available transitions
+      - name: List available Jira transitions
         id: list-transitions
-        uses: atlassian/gajira-get-transitions@v3
-        with:
-          issue: ${{ steps.create.outputs.issue }}
+        run: |
+          ISSUE_KEY="${{ steps.create.outputs.issue }}"  # e.g. OPS-24
+          curl -s -u "${{ secrets.JIRA_USER_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}" \
+            -X GET \
+            -H "Accept: application/json" \
+            "${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${ISSUE_KEY}/transitions" \
+          > transitions.json
+
+          jq '.transitions[] | {id, name}' transitions.json
 
       # 8) Jira에서 백로그 → 할 일 전환
       - name: Move Jira issue to To Do
