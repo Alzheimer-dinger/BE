@@ -1,24 +1,19 @@
-name: 'JIRA 이슈 생성'
+name: '이슈 생성'
 description: 'Repo에 이슈를 생성하며, 생성된 이슈는 Jira와 연동됩니다.'
-title: '이슈 이름을 작성해주세요'
+title: '이슈 제목을 작성해주세요'
 labels:
   - feat
-assignees: []   # 지정할 assignee가 없으면 빈 배열로 두거나, 이 줄 자체를 지워도 됩니다.
+assignees: []   # 필요없으면 빈 배열로 두세요.
 
 body:
-  - type: input
-    id: branch
-    attributes:
-      label: '🌳 브랜치명 (Branch)'
-      description: '영어로 브랜치명을 작성해주세요'
-    validations:
-      required: true
-
-  - type: input
+  - type: textarea
     id: description
     attributes:
       label: '📝 상세 내용 (Description)'
-      description: '이슈에 대해서 간략히 설명해주세요'
+      description: '이슈에 대한 설명을 작성해주세요'
+      placeholder: |
+        - 구현할 기능
+        - 고려 사항
     validations:
       required: true
 
@@ -26,7 +21,7 @@ body:
     id: tasks
     attributes:
       label: '✅ 체크리스트 (Tasks)'
-      description: '해당 이슈에 대해 필요한 작업목록을 작성해주세요'
+      description: '필요한 작업 목록을 작성해주세요'
       value: |
         - [ ] Task1
         - [ ] Task2
