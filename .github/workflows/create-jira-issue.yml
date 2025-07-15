@@ -63,8 +63,8 @@ jobs:
       - name: Comment on Jira issue with GitHub issue number
         uses: atlassian/gajira-comment@v3
         with:
-          issue: ${{ steps.create.outputs.issue }}
-          body: 'GitHub Issue: ${{ github.event.issue.number }}'
+          issue:   ${{ steps.create.outputs.issue }}
+          comment: 'GitHub Issue: #${{ github.event.issue.number }}'
 
       # 7) GitHub 이슈 제목에 JIRA 키 추가
       - name: Update GitHub issue title with JIRA key
