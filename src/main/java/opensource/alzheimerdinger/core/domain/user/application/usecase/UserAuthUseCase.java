@@ -1,23 +1,31 @@
 package opensource.alzheimerdinger.core.domain.user.application.usecase;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.domain.user.application.dto.request.LoginRequest;
-import opensource.alzheimerdinger.core.domain.user.application.dto.request.SignUpRequest;
+import opensource.alzheimerdinger.core.domain.user.application.dto.request.SignUpToGuardianRequest;
+import opensource.alzheimerdinger.core.domain.user.application.dto.request.SignUpToPatientRequest;
 import opensource.alzheimerdinger.core.domain.user.application.dto.response.LoginResponse;
+import opensource.alzheimerdinger.core.domain.user.domain.entity.Relation;
 import opensource.alzheimerdinger.core.domain.user.domain.entity.User;
+import opensource.alzheimerdinger.core.domain.user.domain.service.RelationService;
 import opensource.alzheimerdinger.core.domain.user.domain.service.TokenLifecycleService;
 import opensource.alzheimerdinger.core.domain.user.domain.service.UserService;
 import opensource.alzheimerdinger.core.global.exception.RestApiException;
 import opensource.alzheimerdinger.core.global.security.TokenProvider;
+import opensource.alzheimerdinger.core.global.util.SecureRandomGenerator;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 
 import static opensource.alzheimerdinger.core.global.exception.code.status.AuthErrorStatus.*;
+import static opensource.alzheimerdinger.core.global.exception.code.status.GlobalErrorStatus._PATIENT_CODE_NOT_FOUND;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class UserAuthUseCase {
 
@@ -25,14 +33,29 @@ public class UserAuthUseCase {
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
     private final TokenLifecycleService tokenLifecycleService;
+    private final SecureRandomGenerator secureRandomGenerator;
+    private final RelationService relationService;
 
-    public void signUp(SignUpRequest request) {
+    public void signUp(SignUpToPatientRequest request) {
+        // 이미 가입된 이메일인지 확인
+        if (userService.isAlreadyRegistered(request.email()))
+            throw new RestApiException(ALREADY_REGISTERED_EMAIL);
+
+        String code = secureRandomGenerator.generate();
+
+        // DB에 저장
+        userService.save(request, code);
+    }
+
+    public void signUp(SignUpToGuardianRequest request) {
         // 이미 가입된 이메일인지 확인
         if (userService.isAlreadyRegistered(request.email()))
             throw new RestApiException(ALREADY_REGISTERED_EMAIL);
 
         // DB에 저장
-        userService.save(request);
+        User guardian = userService.save(request);
+        User patient = userService.findPatient(request.code());
+        relationService.save(patient, guardian);
     }
 
     public LoginResponse login(LoginRequest request) {

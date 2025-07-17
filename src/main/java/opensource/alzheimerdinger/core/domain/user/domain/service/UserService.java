@@ -1,8 +1,10 @@
 package opensource.alzheimerdinger.core.domain.user.domain.service;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
-import opensource.alzheimerdinger.core.domain.user.application.dto.request.LoginRequest;
-import opensource.alzheimerdinger.core.domain.user.application.dto.request.SignUpRequest;
+import opensource.alzheimerdinger.core.domain.user.application.dto.request.SignUpToGuardianRequest;
+import opensource.alzheimerdinger.core.domain.user.application.dto.request.SignUpToPatientRequest;
+import opensource.alzheimerdinger.core.domain.user.domain.entity.Role;
 import opensource.alzheimerdinger.core.domain.user.domain.entity.User;
 import opensource.alzheimerdinger.core.domain.user.domain.repository.UserRepository;
 import opensource.alzheimerdinger.core.global.exception.RestApiException;
@@ -27,13 +29,29 @@ public class UserService {
         return userRepository.existsByEmail(email);
     }
 
-    public void save(SignUpRequest request) {
-        userRepository.save(
+    public User save(SignUpToPatientRequest request, String code) {
+        return userRepository.save(
                 User.builder()
                         .email(request.email())
                         .password(passwordEncoder.encode(request.password()))
-                        .role(request.role())
+                        .role(Role.PATIENT)
+                        .patientCode(code)
                         .build()
         );
+    }
+
+    public User save(SignUpToGuardianRequest request) {
+        return userRepository.save(
+                User.builder()
+                        .email(request.email())
+                        .password(passwordEncoder.encode(request.password()))
+                        .role(Role.GUARDIAN)
+                        .build()
+        );
+    }
+
+    public User findPatient(String code) {
+        return userRepository.findByPatientCode(code)
+                .orElseThrow(() -> new RestApiException(_NOT_FOUND));
     }
 }

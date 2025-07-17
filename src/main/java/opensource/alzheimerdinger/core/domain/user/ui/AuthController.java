@@ -4,10 +4,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.domain.user.application.dto.request.LoginRequest;
-import opensource.alzheimerdinger.core.domain.user.application.dto.request.SignUpRequest;
+import opensource.alzheimerdinger.core.domain.user.application.dto.request.SignUpToGuardianRequest;
+import opensource.alzheimerdinger.core.domain.user.application.dto.request.SignUpToPatientRequest;
 import opensource.alzheimerdinger.core.domain.user.application.dto.response.LoginResponse;
 import opensource.alzheimerdinger.core.domain.user.application.usecase.UserAuthUseCase;
-import opensource.alzheimerdinger.core.global.annotation.CurrentUser;
 import opensource.alzheimerdinger.core.global.common.BaseResponse;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,11 +18,14 @@ public class AuthController {
 
     private final UserAuthUseCase userAuthUseCase;
 
-    /**
-     *  회원가입 (보호자는 ROLE_GUARDIAN, 피보호자는 ROLE_PATIENT)
-     */
-    @PostMapping("/sign-up")
-    public BaseResponse<Void> signUp(@RequestBody @Valid SignUpRequest request) {
+    @PostMapping("/patient/sign-up")
+    public BaseResponse<Void> signUp(@RequestBody @Valid SignUpToPatientRequest request) {
+        userAuthUseCase.signUp(request);
+        return BaseResponse.onSuccess();
+    }
+
+    @PostMapping("/guardian/sign-up")
+    public BaseResponse<Void> signUp(@RequestBody @Valid SignUpToGuardianRequest request) {
         userAuthUseCase.signUp(request);
         return BaseResponse.onSuccess();
     }
@@ -36,10 +39,5 @@ public class AuthController {
     public BaseResponse<Void> logout(HttpServletRequest request) {
         userAuthUseCase.logout(request);
         return BaseResponse.onSuccess();
-    }
-
-    @GetMapping("/test")
-    public BaseResponse<String> test(@CurrentUser String userId) {
-        return BaseResponse.onSuccess(userId);
     }
 }

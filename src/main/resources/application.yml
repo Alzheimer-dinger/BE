@@ -33,14 +33,18 @@ jwt:
 
 exclude-auth-path-patterns:
   paths:
-    - path-pattern: /api/users/sign-up
+    - path-pattern: /api/users/patient/sign-up
+      method: POST
+    - path-pattern: /api/users/guardian/sign-up
       method: POST
     - path-pattern: /api/users/login
       method: POST
 
 exclude-blacklist-path-patterns:
   paths:
-    - path-pattern: /api/users/sign-up
+    - path-pattern: /api/users/patient/sign-up
+      method: POST
+    - path-pattern: /api/users/guardian/sign-up
       method: POST
     - path-pattern: /api/users/login
       method: POST
