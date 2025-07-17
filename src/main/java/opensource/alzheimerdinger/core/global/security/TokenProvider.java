@@ -8,6 +8,7 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.domain.user.domain.entity.Role;
+import opensource.alzheimerdinger.core.global.exception.RestApiException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -23,6 +24,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
+
+import static opensource.alzheimerdinger.core.global.exception.code.status.AuthErrorStatus.INVALID_ACCESS_TOKEN;
 
 
 @Service
@@ -51,7 +54,7 @@ public class TokenProvider {
                 ))
                 .setSubject(ACCESS_TOKEN_SUBJECT)
                 .claim(ID_CLAIM, id)
-                .claim(ROLE_CLAIM, role)
+                .claim(ROLE_CLAIM, role.getName())
                 .signWith(Keys.hmacShaKeyFor(jwtProperties.getKey().getBytes(StandardCharsets.UTF_8)), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -69,7 +72,7 @@ public class TokenProvider {
                 ))
                 .setSubject(REFRESH_TOKEN_SUBJECT)
                 .claim(ID_CLAIM, id)
-                .claim(ROLE_CLAIM, role)
+                .claim(ROLE_CLAIM, role.getName())
                 .signWith(Keys.hmacShaKeyFor(jwtProperties.getKey().getBytes(StandardCharsets.UTF_8)), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -87,7 +90,10 @@ public class TokenProvider {
 
     public Authentication getAuthentication(String token) {
         Claims claims = getClaims(token);
-        Set<SimpleGrantedAuthority> authorities = Collections.singleton(new SimpleGrantedAuthority("ROLE_USER"));
+        Role role = getRole(token)
+                .orElseThrow(() -> new RestApiException(INVALID_ACCESS_TOKEN));
+
+        Set<SimpleGrantedAuthority> authorities = Collections.singleton(new SimpleGrantedAuthority(role.getName()));
         return new UsernamePasswordAuthenticationToken(new User(claims.get(ID_CLAIM, String.class), "", authorities), token, authorities);
     }
 
@@ -101,7 +107,8 @@ public class TokenProvider {
 
     public Optional<Role> getRole(String token) {
         try {
-            return Optional.ofNullable(getClaims(token).get(ROLE_CLAIM, Role.class));
+            String roleName = getClaims(token).get(ROLE_CLAIM, String.class);
+            return Optional.of(Role.valueOf(roleName));
         } catch (Exception e) {
             return Optional.empty();
         }

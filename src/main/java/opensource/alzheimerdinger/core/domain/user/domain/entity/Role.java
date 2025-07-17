@@ -1,6 +1,15 @@
 package opensource.alzheimerdinger.core.domain.user.domain.entity;
 
+import lombok.Getter;
+
+@Getter
 public enum Role {
-    ROLE_GUARDIAN,
-    ROLE_PATIENT
+    GUARDIAN("GUARDIAN"),
+    PATIENT("PATIENT");
+
+    private final String name;
+
+    Role(String name) {
+        this.name = name;
+    }
 }
