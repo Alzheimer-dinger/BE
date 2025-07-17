@@ -20,10 +20,18 @@ spring:
 
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
     consumer:
       group-id: ${KAFKA_CONSUMER_GROUP:transcript-consumer-group}
+    analysis-group:
+      group-id: ${KAFKA_CONSUMER_ANALYSIS_GROUP:analysis-consumer-group}
+    cognitive-group:
+      group-id: ${KAFKA_CONSUMER_COGNITIVE_GROUP:cognitive-consumer-group}
+
     topics:
       transcript: ${KAFKA_TOPIC_TRANSCRIPT:ai-transcript}
+      emotion-analysis: ${KAFKA_TOPIC_EMOTION_ANALYSIS:emotion-analysis}
+      cognitive-report: ${KAFKA_TOPIC_COGNITIVE_REPORT:cognitive-report}
 
 
 jwt:
