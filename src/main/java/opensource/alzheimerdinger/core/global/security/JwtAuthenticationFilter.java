@@ -5,7 +5,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import opensource.alzheimerdinger.core.domain.user.domain.service.TokenLifecycleService;
+import opensource.alzheimerdinger.core.domain.user.domain.service.RefreshTokenService;
+import opensource.alzheimerdinger.core.domain.user.domain.service.TokenWhitelistService;
 import opensource.alzheimerdinger.core.global.exception.RestApiException;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.server.PathContainer;
@@ -25,7 +26,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final TokenProvider tokenProvider;
     private final ExcludeAuthPathProperties excludeAuthPathProperties;
-    private final TokenLifecycleService tokenLifecycleService;
+    private final RefreshTokenService refreshTokenService;
+    private final TokenWhitelistService tokenWhitelistService;
 
     private static final PathPatternParser pathPatternParser = new PathPatternParser();
 
@@ -40,11 +42,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = tokenProvider.getToken(request)
                     .orElseThrow(() -> new RestApiException(EMPTY_JWT));
 
-            String userId = tokenProvider.getId(token)
-                    .orElseThrow(() -> new RestApiException(INVALID_ID_TOKEN));
-
             // 토큰 캐시 확인
-            if (tokenLifecycleService.existsByAccessToken(userId, token)) {
+            if (tokenWhitelistService.isWhitelistToken(token)) {
                 setAuthentication(token);
                 filterChain.doFilter(request, response);
                 return;
@@ -57,7 +56,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 throw new RestApiException(INVALID_ACCESS_TOKEN);
 
             // 토큰 캐시
-            tokenLifecycleService.saveAccessToken(userId, token, Duration.ofSeconds(30));
+            tokenWhitelistService.whitelist(token, Duration.ofSeconds(30));
 
             filterChain.doFilter(request, response);
         } catch (RestApiException e) {

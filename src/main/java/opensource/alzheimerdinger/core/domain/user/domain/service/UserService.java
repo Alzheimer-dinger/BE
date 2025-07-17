@@ -54,4 +54,9 @@ public class UserService {
         return userRepository.findByPatientCode(code)
                 .orElseThrow(() -> new RestApiException(_NOT_FOUND));
     }
+
+    public User findUser(String userId) {
+        return  userRepository.findById(userId)
+                .orElseThrow(() -> new RestApiException(_NOT_FOUND));
+    }
 }

@@ -4,8 +4,8 @@ import lombok.Getter;
 
 @Getter
 public enum Role {
-    GUARDIAN("GUARDIAN"),
-    PATIENT("PATIENT");
+    GUARDIAN("ROLE_GUARDIAN"),
+    PATIENT("ROLE_PATIENT");
 
     private final String name;
 
