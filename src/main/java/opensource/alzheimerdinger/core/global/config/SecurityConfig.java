@@ -2,7 +2,8 @@ package opensource.alzheimerdinger.core.global.config;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import opensource.alzheimerdinger.core.domain.user.domain.service.TokenLifecycleService;
+import opensource.alzheimerdinger.core.domain.user.domain.service.RefreshTokenService;
+import opensource.alzheimerdinger.core.domain.user.domain.service.TokenWhitelistService;
 import opensource.alzheimerdinger.core.global.security.ExcludeAuthPathProperties;
 import opensource.alzheimerdinger.core.global.security.JwtAuthenticationFilter;
 import opensource.alzheimerdinger.core.global.security.TokenProvider;
@@ -25,7 +26,8 @@ public class SecurityConfig {
 
     private final TokenProvider tokenProvider;
     private final ExcludeAuthPathProperties excludeAuthPathProperties;
-    private final TokenLifecycleService tokenLifecycleService;
+    private final RefreshTokenService refreshTokenService;
+    private final TokenWhitelistService tokenWhitelistService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -64,7 +66,7 @@ public class SecurityConfig {
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(tokenProvider, excludeAuthPathProperties, tokenLifecycleService);
+        return new JwtAuthenticationFilter(tokenProvider, excludeAuthPathProperties, refreshTokenService, tokenWhitelistService);
     }
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {

@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static opensource.alzheimerdinger.core.global.exception.code.status.AuthErrorStatus.INVALID_ACCESS_TOKEN;
+import static opensource.alzheimerdinger.core.global.exception.code.status.AuthErrorStatus.UNSUPPORTED_JWT;
 
 
 @Service
@@ -138,5 +139,14 @@ public class TokenProvider {
     public Optional<Duration> getRemainingDuration(String token) {
         return getExpiration(token)
                 .map(date -> Duration.between(Instant.now(), date.toInstant()));
+    }
+
+    public boolean isAccessToken(String token) {
+        try {
+            String subject = getClaims(token).getSubject();
+            return ACCESS_TOKEN_SUBJECT.equals(subject);
+        } catch (Exception e) {
+            throw new RestApiException(UNSUPPORTED_JWT);
+        }
     }
 }
