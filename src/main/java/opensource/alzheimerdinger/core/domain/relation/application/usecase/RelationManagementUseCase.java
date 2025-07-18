@@ -70,6 +70,6 @@ public class RelationManagementUseCase {
         if (!relation.isMember(userId))
             throw new RestApiException(_NOT_FOUND);
 
-        relation.updateStatus(RelationStatus.DISCONNECTED);
+        relation.updateStatus(RelationStatus.DISCONNECTED); // CANCELED + DISCONNECTED
     }
 }
