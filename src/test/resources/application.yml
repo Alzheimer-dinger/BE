@@ -20,9 +20,9 @@ spring:
   kafka:
     bootstrap-servers: localhost:9092
     consumer:
-      group-id: test-analysis-group #transcript-consumer-group
+      group-id: test-group
     topics:
-      transcript: ai-transcript
+      transcript: transcript
       emotion-analysis: emotion-analysis
       cognitive-report: cognitive-report
 

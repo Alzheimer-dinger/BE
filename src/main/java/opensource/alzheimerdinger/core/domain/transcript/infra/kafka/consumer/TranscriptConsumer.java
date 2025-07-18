@@ -29,10 +29,9 @@ public class TranscriptConsumer {
             // Service에서 저장
             transcriptService.save(req);
 
-            log.info("Transcript saved: session={}, speaker={}", req.getSessionId(), req.getSpeaker());
+            log.info("Transcript saved: session={}, speaker={}", req.getSessionId());
         } catch (Exception e) {
             log.error("Failed to process transcript message: {}", message, e);
-            // Retry 추가 로직
         }
     }
 }

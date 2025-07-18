@@ -24,6 +24,7 @@ public class EmotionAnalysisConsumer {
         try {
             EmotionAnalysisRequest dto = objectMapper.readValue(message, EmotionAnalysisRequest.class);
             analysisService.saveEmotionAnalysis(dto);
+            log.info("Saved emotion-analysis for session {}", dto.getSessionId());
         } catch (Exception e) {
             log.error("Failed processing emotion-analysis message", e);
         }

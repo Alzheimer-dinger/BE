@@ -6,19 +6,21 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Document(collection = "transcripts")
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class Transcript {
     @Id
-    private String id;
+    private String transcriptId;
     private String sessionId;
-    private int sessionSeq;
-    private LocalDateTime conversationDate;
-    private Speaker speaker;
-    private String script;
+    private String userId;
+
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
+
+    private List<ConversationEntry> conversation;
 }
