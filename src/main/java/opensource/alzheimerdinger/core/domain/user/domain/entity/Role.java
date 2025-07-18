@@ -5,7 +5,7 @@ import lombok.Getter;
 @Getter
 public enum Role {
     GUARDIAN("ROLE_GUARDIAN"),
-    PATIENT("ROLE_PATIENT");
+    PATIENT("ROLE_PATIENT"),;
 
     private final String name;
 

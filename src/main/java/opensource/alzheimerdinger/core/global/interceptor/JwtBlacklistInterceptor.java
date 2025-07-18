@@ -4,20 +4,19 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.domain.user.domain.service.TokenBlacklistService;
-import opensource.alzheimerdinger.core.domain.user.domain.service.RefreshTokenService;
 import opensource.alzheimerdinger.core.global.exception.RestApiException;
 import opensource.alzheimerdinger.core.global.security.TokenProvider;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import static opensource.alzheimerdinger.core.global.exception.code.status.AuthErrorStatus.*;
+import static opensource.alzheimerdinger.core.global.exception.code.status.AuthErrorStatus.EMPTY_JWT;
+import static opensource.alzheimerdinger.core.global.exception.code.status.AuthErrorStatus.EXPIRED_MEMBER_JWT;
 
 @Component
 @RequiredArgsConstructor
 public class JwtBlacklistInterceptor implements HandlerInterceptor {
 
     private final TokenProvider tokenProvider;
-    private final RefreshTokenService refreshTokenService;
     private final TokenBlacklistService tokenBlacklistService;
 
     @Override
