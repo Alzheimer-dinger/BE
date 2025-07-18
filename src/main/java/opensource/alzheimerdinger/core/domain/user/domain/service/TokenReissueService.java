@@ -1,5 +1,6 @@
 package opensource.alzheimerdinger.core.domain.user.domain.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.domain.user.application.dto.response.TokenReissueResponse;
 import opensource.alzheimerdinger.core.domain.user.domain.entity.User;
@@ -13,6 +14,7 @@ import static opensource.alzheimerdinger.core.global.exception.code.status.AuthE
 import static opensource.alzheimerdinger.core.global.exception.code.status.AuthErrorStatus.INVALID_REFRESH_TOKEN;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class TokenReissueService {
 
@@ -22,7 +24,7 @@ public class TokenReissueService {
 
     public TokenReissueResponse reissue(String refreshToken, String userId) {
         // 존재 유무 검사
-        if (refreshTokenService.isExist(refreshToken, userId))
+        if (!refreshTokenService.isExist(refreshToken, userId))
             throw new RestApiException(INVALID_REFRESH_TOKEN);
 
         // 기존에 있는 토큰 삭제

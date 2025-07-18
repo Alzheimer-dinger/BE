@@ -55,7 +55,7 @@ public class TokenProvider {
                 ))
                 .setSubject(ACCESS_TOKEN_SUBJECT)
                 .claim(ID_CLAIM, id)
-                .claim(ROLE_CLAIM, role.getName())
+                .claim(ROLE_CLAIM, role)
                 .signWith(Keys.hmacShaKeyFor(jwtProperties.getKey().getBytes(StandardCharsets.UTF_8)), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -73,7 +73,7 @@ public class TokenProvider {
                 ))
                 .setSubject(REFRESH_TOKEN_SUBJECT)
                 .claim(ID_CLAIM, id)
-                .claim(ROLE_CLAIM, role.getName())
+                .claim(ROLE_CLAIM, role)
                 .signWith(Keys.hmacShaKeyFor(jwtProperties.getKey().getBytes(StandardCharsets.UTF_8)), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -108,8 +108,8 @@ public class TokenProvider {
 
     public Optional<Role> getRole(String token) {
         try {
-            String roleName = getClaims(token).get(ROLE_CLAIM, String.class);
-            return Optional.of(Role.valueOf(roleName));
+            String role = getClaims(token).get(ROLE_CLAIM, String.class);
+            return Optional.of(Role.valueOf(role));
         } catch (Exception e) {
             return Optional.empty();
         }
