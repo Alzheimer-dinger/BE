@@ -1,4 +1,4 @@
-package opensource.alzheimerdinger.core.domain.user.domain.entity;
+package opensource.alzheimerdinger.core.domain.relation.domain.entity;
 
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
