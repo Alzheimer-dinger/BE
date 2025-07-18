@@ -9,9 +9,12 @@ import opensource.alzheimerdinger.core.domain.user.domain.entity.Role;
 import opensource.alzheimerdinger.core.domain.user.domain.entity.User;
 import opensource.alzheimerdinger.core.domain.relation.domain.repository.RelationRepository;
 import opensource.alzheimerdinger.core.domain.user.domain.service.UserService;
+import opensource.alzheimerdinger.core.global.exception.RestApiException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+
+import static opensource.alzheimerdinger.core.global.exception.code.status.GlobalErrorStatus._NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -35,7 +38,12 @@ public class RelationService {
         return relationRepository.findRelation(userId);
     }
 
-    public boolean validate(String relationId) {
-        return relationRepository.existsById(relationId);
+    public Relation findRelation(String relationId) {
+        return relationRepository.findById(relationId)
+                .orElseThrow(() -> new RestApiException(_NOT_FOUND));
+    }
+
+    public boolean existsByGuardianAndPatient(User guardian, User patient) {
+        return relationRepository.existsByUsers(guardian, patient);
     }
 }

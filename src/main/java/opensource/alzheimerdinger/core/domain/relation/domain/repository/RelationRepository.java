@@ -26,7 +26,15 @@ public interface RelationRepository extends JpaRepository<Relation, String> {
         JOIN relation.patient patient
         JOIN relation.guardian guardian
         WHERE patient.userId = :userNo OR guardian.userId = :userNo
+        ORDER BY relation.createdAt DESC
     """)
     List<RelationResponse> findRelation(@Param("userNo") String userNo);
 
+    @Query("""
+    SELECT COUNT(r) > 0
+    FROM Relation r
+    WHERE (r.guardian = :u1 AND r.patient = :u2)
+       OR (r.guardian = :u2 AND r.patient = :u1)
+""")
+    boolean existsByUsers(@Param("u1") User u1, @Param("u2") User u2);
 }
