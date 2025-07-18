@@ -12,16 +12,16 @@ import opensource.alzheimerdinger.core.global.common.BaseEntity;
 @AllArgsConstructor
 @Table(name = "guardian_patient_relation")
 @IdClass(RelationId.class)
-public class Relation extends BaseEntity{
+public class Relation extends BaseEntity {
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "patient_no", nullable = false)
+    @JoinColumn(name = "patient_id", nullable = false)
     private User patient;
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "guardian_no", nullable = false)
+    @JoinColumn(name = "guardian_id", nullable = false)
     private User guardian;
 
 }

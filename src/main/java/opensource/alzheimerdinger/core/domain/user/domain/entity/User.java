@@ -18,6 +18,8 @@ public class User {
     @Id @Tsid
     private String userId;
 
+    private String name;
+
     @Column(nullable = false)
     private String email;
 
@@ -29,5 +31,8 @@ public class User {
     private Role role;
 
     private String patientCode;
+
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
 
 }
