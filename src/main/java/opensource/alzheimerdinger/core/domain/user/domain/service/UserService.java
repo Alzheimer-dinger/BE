@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.domain.user.application.dto.request.SignUpToGuardianRequest;
 import opensource.alzheimerdinger.core.domain.user.application.dto.request.SignUpToPatientRequest;
+import opensource.alzheimerdinger.core.domain.user.application.dto.response.ProfileResponse;
 import opensource.alzheimerdinger.core.domain.user.domain.entity.Role;
 import opensource.alzheimerdinger.core.domain.user.domain.entity.User;
 import opensource.alzheimerdinger.core.domain.user.domain.repository.UserRepository;
@@ -36,6 +37,8 @@ public class UserService {
                         .password(passwordEncoder.encode(request.password()))
                         .role(Role.PATIENT)
                         .patientCode(code)
+                        .gender(request.gender())
+                        .name(request.name())
                         .build()
         );
     }
@@ -46,6 +49,8 @@ public class UserService {
                         .email(request.email())
                         .password(passwordEncoder.encode(request.password()))
                         .role(Role.GUARDIAN)
+                        .gender(request.gender())
+                        .name(request.name())
                         .build()
         );
     }
@@ -57,6 +62,12 @@ public class UserService {
 
     public User findUser(String userId) {
         return  userRepository.findById(userId)
+                .orElseThrow(() -> new RestApiException(_NOT_FOUND));
+    }
+
+    public ProfileResponse findProfile(String userId) {
+        return userRepository.findById(userId)
+                .map(ProfileResponse::create)
                 .orElseThrow(() -> new RestApiException(_NOT_FOUND));
     }
 }
