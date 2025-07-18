@@ -3,10 +3,13 @@ package opensource.alzheimerdinger.core.domain.user.application.usecase;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import opensource.alzheimerdinger.core.domain.relation.domain.entity.RelationStatus;
+import opensource.alzheimerdinger.core.domain.relation.domain.service.RelationService;
 import opensource.alzheimerdinger.core.domain.user.application.dto.request.LoginRequest;
 import opensource.alzheimerdinger.core.domain.user.application.dto.request.SignUpToGuardianRequest;
-import opensource.alzheimerdinger.core.domain.user.application.dto.request.SignUpToPatientRequest;
+import opensource.alzheimerdinger.core.domain.user.application.dto.request.SignUpRequest;
 import opensource.alzheimerdinger.core.domain.user.application.dto.response.LoginResponse;
+import opensource.alzheimerdinger.core.domain.user.domain.entity.Role;
 import opensource.alzheimerdinger.core.domain.user.domain.entity.User;
 import opensource.alzheimerdinger.core.domain.user.domain.service.*;
 import opensource.alzheimerdinger.core.global.exception.RestApiException;
@@ -16,8 +19,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.Objects;
 
 import static opensource.alzheimerdinger.core.global.exception.code.status.AuthErrorStatus.*;
+import static opensource.alzheimerdinger.core.global.exception.code.status.GlobalErrorStatus._NOT_FOUND;
 
 @Service
 @Transactional
@@ -33,7 +38,7 @@ public class UserAuthUseCase {
     private final TokenBlacklistService tokenBlacklistService;
     private final TokenWhitelistService tokenWhitelistService;
 
-    public void signUp(SignUpToPatientRequest request) {
+    public void signUp(SignUpRequest request) {
         // 이미 가입된 이메일인지 확인
         if (userService.isAlreadyRegistered(request.email()))
             throw new RestApiException(ALREADY_REGISTERED_EMAIL);
@@ -41,18 +46,17 @@ public class UserAuthUseCase {
         String code = secureRandomGenerator.generate();
 
         // DB에 저장
-        userService.save(request, code);
-    }
+        User user = userService.save(request, code);
 
-    public void signUp(SignUpToGuardianRequest request) {
-        // 이미 가입된 이메일인지 확인
-        if (userService.isAlreadyRegistered(request.email()))
-            throw new RestApiException(ALREADY_REGISTERED_EMAIL);
+        if(request.patientCode() != null) {
+            User patient = userService.findPatient(request.patientCode());
 
-        // DB에 저장
-        User guardian = userService.save(request);
-        User patient = userService.findPatient(request.code());
-        relationService.save(patient, guardian);
+            if(!Objects.equals(patient.getPatientCode(), request.patientCode()))
+                throw new RestApiException(_NOT_FOUND);
+
+            relationService.save(patient, user, RelationStatus.REQUESTED, Role.GUARDIAN);
+        }
+
     }
 
     public LoginResponse login(LoginRequest request) {
