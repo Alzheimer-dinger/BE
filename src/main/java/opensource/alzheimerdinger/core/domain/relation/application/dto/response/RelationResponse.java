@@ -1,19 +1,16 @@
 package opensource.alzheimerdinger.core.domain.relation.application.dto.response;
 
-import opensource.alzheimerdinger.core.domain.relation.domain.entity.Relation;
 import opensource.alzheimerdinger.core.domain.relation.domain.entity.RelationStatus;
-import opensource.alzheimerdinger.core.domain.relation.domain.entity.RelationType;
+import opensource.alzheimerdinger.core.domain.user.domain.entity.Role;
 
 import java.time.LocalDateTime;
 
 public record RelationResponse(
+        String counterId,
         String name,
         String patientCode,
-        RelationType relationType,
+        Role relationType,
         LocalDateTime createdAt,
-        RelationStatus status
-) {
-    public static RelationResponse create(Relation relation) {
-        return null;
-    }
-}
+        RelationStatus status,
+        Role initiator
+) {}

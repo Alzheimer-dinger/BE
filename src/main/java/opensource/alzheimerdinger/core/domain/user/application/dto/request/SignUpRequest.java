@@ -5,9 +5,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import opensource.alzheimerdinger.core.domain.user.domain.entity.Gender;
 
-public record SignUpToPatientRequest(
+public record SignUpRequest(
         @NotBlank String name,
         @Email @NotBlank String email,
         @NotBlank String password,
-        @NotNull Gender gender
+        @NotNull Gender gender,
+        String patientCode
 ) {}

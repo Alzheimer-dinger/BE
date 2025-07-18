@@ -5,7 +5,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.domain.user.application.dto.request.LoginRequest;
 import opensource.alzheimerdinger.core.domain.user.application.dto.request.SignUpToGuardianRequest;
-import opensource.alzheimerdinger.core.domain.user.application.dto.request.SignUpToPatientRequest;
+import opensource.alzheimerdinger.core.domain.user.application.dto.request.SignUpRequest;
 import opensource.alzheimerdinger.core.domain.user.application.dto.response.LoginResponse;
 import opensource.alzheimerdinger.core.domain.user.application.usecase.UserAuthUseCase;
 import opensource.alzheimerdinger.core.global.common.BaseResponse;
@@ -18,14 +18,8 @@ public class AuthController {
 
     private final UserAuthUseCase userAuthUseCase;
 
-    @PostMapping("/patient/sign-up")
-    public BaseResponse<Void> signUp(@RequestBody @Valid SignUpToPatientRequest request) {
-        userAuthUseCase.signUp(request);
-        return BaseResponse.onSuccess();
-    }
-
-    @PostMapping("/guardian/sign-up")
-    public BaseResponse<Void> signUp(@RequestBody @Valid SignUpToGuardianRequest request) {
+    @PostMapping("/sign-up")
+    public BaseResponse<Void> signUp(@RequestBody @Valid SignUpRequest request) {
         userAuthUseCase.signUp(request);
         return BaseResponse.onSuccess();
     }

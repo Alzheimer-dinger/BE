@@ -1,9 +1,8 @@
 package opensource.alzheimerdinger.core.domain.user.domain.service;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.domain.user.application.dto.request.SignUpToGuardianRequest;
-import opensource.alzheimerdinger.core.domain.user.application.dto.request.SignUpToPatientRequest;
+import opensource.alzheimerdinger.core.domain.user.application.dto.request.SignUpRequest;
 import opensource.alzheimerdinger.core.domain.user.application.dto.response.ProfileResponse;
 import opensource.alzheimerdinger.core.domain.user.domain.entity.Role;
 import opensource.alzheimerdinger.core.domain.user.domain.entity.User;
@@ -30,25 +29,13 @@ public class UserService {
         return userRepository.existsByEmail(email);
     }
 
-    public User save(SignUpToPatientRequest request, String code) {
+    public User save(SignUpRequest request, String code) {
         return userRepository.save(
                 User.builder()
                         .email(request.email())
                         .password(passwordEncoder.encode(request.password()))
-                        .role(Role.PATIENT)
+                        .role(request.patientCode() == null ? Role.PATIENT : Role.GUARDIAN)
                         .patientCode(code)
-                        .gender(request.gender())
-                        .name(request.name())
-                        .build()
-        );
-    }
-
-    public User save(SignUpToGuardianRequest request) {
-        return userRepository.save(
-                User.builder()
-                        .email(request.email())
-                        .password(passwordEncoder.encode(request.password()))
-                        .role(Role.GUARDIAN)
                         .gender(request.gender())
                         .name(request.name())
                         .build()

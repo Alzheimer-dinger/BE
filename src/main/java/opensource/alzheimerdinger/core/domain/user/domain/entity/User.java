@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import opensource.alzheimerdinger.core.global.common.BaseEntity;
 
 @Entity
 @Getter
@@ -13,7 +14,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class User {
+public class User extends BaseEntity {
 
     @Id @Tsid
     private String userId;
