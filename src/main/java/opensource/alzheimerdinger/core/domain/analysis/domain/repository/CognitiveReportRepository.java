@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface CognitiveReportRepository
-        extends JpaRepository<CognitiveReport, String> {
-    List<CognitiveReport> findBySession_SessionId(String sessionId);
+public interface CognitiveReportRepository extends JpaRepository<CognitiveReport, String> {
+    List<CognitiveReport> findBySessionId(String sessionId);
 }

@@ -7,9 +7,13 @@ import java.time.LocalDateTime;
 
 @Data
 public class EmotionAnalysisRequest {
-    @NotBlank private String analysisId;
-    @NotBlank private String sessionId;
-    @NotBlank private LocalDateTime analysisTime;
-    @NotBlank private String emotionLabel;
-    @NotBlank private Float emotionScore;
+    private String analysisId;
+    private String sessionId;
+    private LocalDateTime timestamp;
+
+    private float happy;
+    private float sad;
+    private float angry;
+    private float surprised;
+    private float bored;
 }
