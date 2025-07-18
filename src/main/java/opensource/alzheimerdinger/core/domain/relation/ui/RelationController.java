@@ -6,6 +6,7 @@ import opensource.alzheimerdinger.core.domain.relation.application.dto.request.R
 import opensource.alzheimerdinger.core.domain.relation.application.dto.request.RelationReconnectRequest;
 import opensource.alzheimerdinger.core.domain.relation.application.dto.response.RelationResponse;
 import opensource.alzheimerdinger.core.domain.relation.application.usecase.RelationManagementUseCase;
+import opensource.alzheimerdinger.core.domain.relation.domain.entity.RelationStatus;
 import opensource.alzheimerdinger.core.global.annotation.CurrentUser;
 import opensource.alzheimerdinger.core.global.common.BaseResponse;
 import org.springframework.web.bind.annotation.*;
@@ -36,5 +37,15 @@ public class RelationController {
         return BaseResponse.onSuccess();
     }
 
+    @PatchMapping("/reply")
+    public BaseResponse<Void> reply(@CurrentUser String userId, @RequestParam String relationId, @RequestParam RelationStatus status) {
+        relationManagementUseCase.reply(userId, relationId, status);
+        return BaseResponse.onSuccess();
+    }
 
+    @DeleteMapping
+    public BaseResponse<Void> disconnect(@CurrentUser String userId, @RequestParam String relationId) {
+        relationManagementUseCase.disconnect(userId, relationId);
+        return BaseResponse.onSuccess();
+    }
 }
