@@ -1,9 +1,10 @@
-package opensource.alzheimerdinger.core.domain.user.domain.entity;
+package opensource.alzheimerdinger.core.domain.relation.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import opensource.alzheimerdinger.core.domain.user.domain.entity.User;
 import opensource.alzheimerdinger.core.global.common.BaseEntity;
 
 @Entity
