@@ -21,7 +21,7 @@ public class TranscriptReader {
     private final MongoTemplate batchMongoTemplate;
     private final TranscriptBatchService transcriptBatchService;
 
-    //날짜 기반으로 Transcript 읽기
+    //날짜 기반으로 Transcript 읽기 (startTime 기준)
     public ItemReader<Transcript> createDateBasedReader(String date) {
         return new ItemReader<Transcript>() {
             private Iterator<Transcript> transcriptIterator;
@@ -34,7 +34,7 @@ public class TranscriptReader {
                         LocalDateTime.parse(date, DateTimeFormatter.ISO_LOCAL_DATE_TIME) : 
                         LocalDateTime.now().minusDays(1); //기본값: 어제
 
-                    List<Transcript> transcripts = transcriptBatchService.findByConversationDateAfter(targetDate);
+                    List<Transcript> transcripts = transcriptBatchService.findByStartTimeAfter(targetDate);
                     
                     // 기본적인 유효성 검증을 여기서 수행
                     transcripts = transcripts.stream()
@@ -50,9 +50,11 @@ public class TranscriptReader {
             
             private boolean isValidTranscript(Transcript transcript) {
                 return transcript != null && 
-                       transcript.getId() != null && 
-                       transcript.getScript() != null && 
-                       !transcript.getScript().trim().isEmpty();
+                       transcript.getTranscriptId() != null && 
+                       transcript.getConversation() != null && 
+                       !transcript.getConversation().isEmpty() &&
+                       transcript.getConversation().stream()
+                           .anyMatch(entry -> entry.getContent() != null && !entry.getContent().trim().isEmpty());
             }
         };
     }
@@ -82,9 +84,11 @@ public class TranscriptReader {
             
             private boolean isValidTranscript(Transcript transcript) {
                 return transcript != null && 
-                       transcript.getId() != null && 
-                       transcript.getScript() != null && 
-                       !transcript.getScript().trim().isEmpty();
+                       transcript.getTranscriptId() != null && 
+                       transcript.getConversation() != null && 
+                       !transcript.getConversation().isEmpty() &&
+                       transcript.getConversation().stream()
+                           .anyMatch(entry -> entry.getContent() != null && !entry.getContent().trim().isEmpty());
             }
         };
     }

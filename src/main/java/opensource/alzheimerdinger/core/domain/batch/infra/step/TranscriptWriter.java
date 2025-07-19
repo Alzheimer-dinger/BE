@@ -16,7 +16,7 @@ public class TranscriptWriter {
 
     private final TranscriptProducer transcriptProducer;
 
-    //Kafka로 메시지 전송하는 Writer
+    //Kafka로 메시지 전송하는 Writer (TranscriptDto 처리)
     public ItemWriter<TranscriptDto> createKafkaWriter() {
         return new ItemWriter<TranscriptDto>() {
             @Override
@@ -26,15 +26,16 @@ public class TranscriptWriter {
                         // 순수하게 Kafka 전송만 담당
                         transcriptProducer.sendTranscriptMessageSync(item);
                         
-                        log.debug("Processed transcript message: sessionId={}, seq={}", 
-                                item.sessionId(), item.sessionSeq());
+                        log.debug("Processed transcript message: transcriptId={}, sessionId={}, conversationCount={}", 
+                                item.transcriptId(), item.sessionId(), item.conversation().size());
                     } catch (Exception e) {
-                        log.error("Failed to process transcript message: {}", item.id(), e);
+                        log.error("Failed to process transcript message: transcriptId={}", 
+                                item.transcriptId(), e);
                         throw e;
                     }
                 }
                 
-                log.info("Successfully processed {} transcript messages", chunk.size());
+                log.info("Successfully processed {} transcript documents", chunk.size());
             }
         };
     }
