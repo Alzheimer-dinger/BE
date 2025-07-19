@@ -24,6 +24,7 @@ public class CognitiveReportConsumer {
         try {
             CognitiveReportRequest dto = objectMapper.readValue(message, CognitiveReportRequest.class);
             reportService.saveCognitiveReport(dto);
+            log.info("Saved cognitive-report for session {}", dto.getSessionId());
         } catch (Exception e) {
             log.error("Failed processing cognitive-report message", e);
         }
