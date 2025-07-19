@@ -27,24 +27,25 @@ public class TranscriptProducer {
     public void sendTranscriptMessage(TranscriptDto transcriptDto) {
         try {
             String message = objectMapper.writeValueAsString(transcriptDto);
-            String key = transcriptDto.id();
+            String key = transcriptDto.transcriptId();
 
             CompletableFuture<SendResult<String, String>> future = 
                 kafkaTemplate.send(TRANSCRIPT_TOPIC, key, message);
 
             future.whenComplete((result, throwable) -> {
                 if (throwable == null) {
-                    log.info("Transcript message sent successfully: sessionId={}, seq={}, offset={}", 
-                            transcriptDto.sessionId(), transcriptDto.sessionSeq(), 
-                            result.getRecordMetadata().offset());
+                    log.info("Transcript message sent successfully: transcriptId={}, sessionId={}, conversationCount={}, offset={}", 
+                            transcriptDto.transcriptId(), transcriptDto.sessionId(), 
+                            transcriptDto.conversation().size(), result.getRecordMetadata().offset());
                 } else {
-                    log.error("Failed to send transcript message: sessionId={}, seq={}", 
-                            transcriptDto.sessionId(), transcriptDto.sessionSeq(), throwable);
+                    log.error("Failed to send transcript message: transcriptId={}, sessionId={}, conversationCount={}", 
+                            transcriptDto.transcriptId(), transcriptDto.sessionId(), 
+                            transcriptDto.conversation().size(), throwable);
                 }
             });
 
         } catch (Exception e) {
-            log.error("Error converting transcript to JSON: {}", transcriptDto.id(), e);
+            log.error("Error converting transcript to JSON: {}", transcriptDto.transcriptId(), e);
             throw new RuntimeException("Failed to send transcript message", e);
         }
     }
@@ -53,25 +54,27 @@ public class TranscriptProducer {
     public void sendTranscriptMessageSync(TranscriptDto transcriptDto) {
         try {
             String message = objectMapper.writeValueAsString(transcriptDto);
-            String key = transcriptDto.id();
+            String key = transcriptDto.transcriptId();
 
             SendResult<String, String> result = kafkaTemplate.send(TRANSCRIPT_TOPIC, key, message).get();
             
-            log.info("Transcript message sent successfully: sessionId={}, seq={}, offset={}", 
-                    transcriptDto.sessionId(), transcriptDto.sessionSeq(), 
-                    result.getRecordMetadata().offset());
+            log.info("Transcript message sent successfully: transcriptId={}, sessionId={}, conversationCount={}, offset={}", 
+                    transcriptDto.transcriptId(), transcriptDto.sessionId(), 
+                    transcriptDto.conversation().size(), result.getRecordMetadata().offset());
 
         } catch (ExecutionException e) {
-            log.error("Failed to send transcript message (ExecutionException): sessionId={}, seq={}", 
-                    transcriptDto.sessionId(), transcriptDto.sessionSeq(), e);
+            log.error("Failed to send transcript message (ExecutionException): transcriptId={}, sessionId={}, conversationCount={}", 
+                    transcriptDto.transcriptId(), transcriptDto.sessionId(), 
+                    transcriptDto.conversation().size(), e);
             throw new RuntimeException("Failed to send transcript message", e);
         } catch (InterruptedException e) {
-            log.error("Kafka send interrupted for transcript: sessionId={}, seq={}", 
-                    transcriptDto.sessionId(), transcriptDto.sessionSeq(), e);
+            log.error("Kafka send interrupted for transcript: transcriptId={}, sessionId={}, conversationCount={}", 
+                    transcriptDto.transcriptId(), transcriptDto.sessionId(), 
+                    transcriptDto.conversation().size(), e);
             Thread.currentThread().interrupt();
             throw new RuntimeException("Failed to send transcript message", e);
         } catch (Exception e) {
-            log.error("Unexpected error in sync kafka send for transcript: {}", transcriptDto.id(), e);
+            log.error("Unexpected error in sync kafka send for transcript: {}", transcriptDto.transcriptId(), e);
             throw new RuntimeException("Failed to send transcript message", e);
         }
     }

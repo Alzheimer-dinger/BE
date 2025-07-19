@@ -1,16 +1,17 @@
 package opensource.alzheimerdinger.core.domain.batch.application.dto;
 
-import opensource.alzheimerdinger.core.domain.transcript.domain.entity.Speaker;
+import opensource.alzheimerdinger.core.domain.transcript.domain.entity.ConversationEntry;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
-//Transcript entity의 모든 정보를 담은 DTO
+//Transcript entity의 전체 정보를 담은 DTO (Kafka 전송용)
 public record TranscriptDto(
-        String id,
+        String transcriptId,
         String sessionId,
-        int sessionSeq,
-        LocalDateTime conversationDate,
-        Speaker speaker,
-        String script
+        String userId,
+        LocalDateTime startTime,
+        LocalDateTime endTime,
+        List<ConversationEntry> conversation
 ) {
 } 

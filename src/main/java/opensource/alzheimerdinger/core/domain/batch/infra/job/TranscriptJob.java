@@ -1,6 +1,7 @@
 package opensource.alzheimerdinger.core.domain.batch.infra.job;
 
 import lombok.RequiredArgsConstructor;
+import opensource.alzheimerdinger.core.domain.batch.application.dto.TranscriptDto;
 import opensource.alzheimerdinger.core.domain.batch.infra.step.TranscriptProcessor;
 import opensource.alzheimerdinger.core.domain.batch.infra.step.TranscriptReader;
 import opensource.alzheimerdinger.core.domain.batch.infra.step.TranscriptWriter;
@@ -46,7 +47,7 @@ public class TranscriptJob {
     @Bean
     public Step transcriptStep() {
         return new StepBuilder("transcriptStep", jobRepository)
-                .<Transcript, opensource.alzheimerdinger.core.domain.batch.application.dto.TranscriptDto>chunk(100, transactionManager)
+                .<Transcript, TranscriptDto>chunk(100, transactionManager)
                 .reader(transcriptItemReader(null))
                 .processor(transcriptItemProcessor())
                 .writer(transcriptItemWriter())
@@ -62,13 +63,13 @@ public class TranscriptJob {
 
     //Transcript Processor 정의 - 데이터 변환
     @Bean
-    public ItemProcessor<Transcript, opensource.alzheimerdinger.core.domain.batch.application.dto.TranscriptDto> transcriptItemProcessor() {
+    public ItemProcessor<Transcript, TranscriptDto> transcriptItemProcessor() {
         return transcriptProcessor.createDefaultProcessor();
     }
 
     //Transcript Writer 정의 - Kafka로 메시지 전송
     @Bean
-    public ItemWriter<opensource.alzheimerdinger.core.domain.batch.application.dto.TranscriptDto> transcriptItemWriter() {
+    public ItemWriter<TranscriptDto> transcriptItemWriter() {
         return transcriptWriter.createKafkaWriter();
     }
 } 

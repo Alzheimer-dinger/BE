@@ -19,17 +19,20 @@ public class TranscriptProcessor {
             }
             
             // 기본적인 null 체크만 수행
-            if (item.getId() == null || item.getScript() == null || item.getScript().trim().isEmpty()) {
+            if (item.getTranscriptId() == null || 
+                item.getConversation() == null || 
+                item.getConversation().isEmpty()) {
                 return null; // 유효하지 않은 데이터는 스킵
             }
             
+            // 전체 Transcript를 하나의 DTO로 변환
             return new TranscriptDto(
-                item.getId(),
+                item.getTranscriptId(),
                 item.getSessionId(),
-                item.getSessionSeq(),
-                item.getConversationDate(),
-                item.getSpeaker(),
-                item.getScript()
+                item.getUserId(),
+                item.getStartTime(),
+                item.getEndTime(),
+                item.getConversation()
             );
         };
     }

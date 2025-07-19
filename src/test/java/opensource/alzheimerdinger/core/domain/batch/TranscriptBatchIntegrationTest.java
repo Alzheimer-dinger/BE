@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import opensource.alzheimerdinger.core.domain.batch.application.dto.request.TranscriptBatchRequest;
 import opensource.alzheimerdinger.core.domain.batch.application.dto.response.TranscriptBatchResponse;
 import opensource.alzheimerdinger.core.domain.batch.application.usecase.TranscriptBatchUseCase;
-import opensource.alzheimerdinger.core.domain.transcript.domain.entity.Speaker;
+import opensource.alzheimerdinger.core.domain.transcript.domain.entity.ConversationEntry;
 import opensource.alzheimerdinger.core.domain.transcript.domain.entity.Transcript;
 import opensource.alzheimerdinger.core.domain.transcript.domain.repository.TranscriptRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +16,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -61,34 +62,30 @@ class TranscriptBatchIntegrationTest {
         
         Transcript testTranscript1 = Transcript.builder()
                 .sessionId("integration-test-session-001")
-                .sessionSeq(1)
-                .conversationDate(testDate)
-                .speaker(Speaker.CLIENT)
-                .script("안녕하세요, 통합 테스트 메시지입니다.")
+                .userId("test-user-001")
+                .startTime(testDate)
+                .endTime(testDate.plusMinutes(10))
+                .conversation(List.of(
+                    new ConversationEntry(ConversationEntry.Speaker.patient, "안녕하세요, 통합 테스트 메시지입니다."),
+                    new ConversationEntry(ConversationEntry.Speaker.ai, "네, 안녕하세요! 도움이 필요하시면 말씀해주세요.")
+                ))
                 .build();
 
         Transcript testTranscript2 = Transcript.builder()
-                .sessionId("integration-test-session-001")
-                .sessionSeq(2)
-                .conversationDate(testDate.plusMinutes(1))
-                .speaker(Speaker.AI)
-                .script("네, 안녕하세요! 도움이 필요하시면 말씀해주세요.")
-                .build();
-
-        Transcript testTranscript3 = Transcript.builder()
                 .sessionId("integration-test-session-002")
-                .sessionSeq(1)
-                .conversationDate(testDate.plusMinutes(5))
-                .speaker(Speaker.CLIENT)
-                .script("오늘 날씨가 좋네요.")
+                .userId("test-user-002")
+                .startTime(testDate.plusMinutes(5))
+                .endTime(testDate.plusMinutes(15))
+                .conversation(List.of(
+                    new ConversationEntry(ConversationEntry.Speaker.patient, "오늘 날씨가 좋네요.")
+                ))
                 .build();
 
         transcriptRepository.save(testTranscript1);
         transcriptRepository.save(testTranscript2);
-        transcriptRepository.save(testTranscript3);
 
         // 데이터 저장 확인
-        assertThat(transcriptRepository.count()).isEqualTo(3);
+        assertThat(transcriptRepository.count()).isEqualTo(2);
 
         // When: 배치 실행
         TranscriptBatchRequest batchRequest = new TranscriptBatchRequest(
@@ -98,15 +95,15 @@ class TranscriptBatchIntegrationTest {
 
         TranscriptBatchResponse response = transcriptBatchUseCase.executeBatch(batchRequest);
 
-        // Then: 배치 실행 결과 검증
+        // Then: 배치 실행 결과 검증 (transcript document 개수)
         assertThat(response).isNotNull();
         assertThat(response.jobId()).isNotBlank();
         assertThat(response.status()).isEqualTo("SUCCESS");
-        assertThat(response.processedCount()).isEqualTo(3);
+        assertThat(response.processedCount()).isEqualTo(2); // transcript document 개수
 
         System.out.println("=== 배치 실행 완료 ===");
         System.out.println("Job ID: " + response.jobId());
-        System.out.println("처리된 메시지 수: " + response.processedCount());
+        System.out.println("처리된 Transcript 문서 수: " + response.processedCount());
         System.out.println("배치 상태: " + response.status());
     }
 
@@ -131,7 +128,7 @@ class TranscriptBatchIntegrationTest {
 
         System.out.println("=== 빈 데이터베이스 배치 완료 ===");
         System.out.println("Job ID: " + response.jobId());
-        System.out.println("처리된 메시지 수: " + response.processedCount());
+        System.out.println("처리된 Transcript 문서 수: " + response.processedCount());
     }
 
     @Test
@@ -144,19 +141,23 @@ class TranscriptBatchIntegrationTest {
         // 오래된 데이터
         Transcript oldTranscript = Transcript.builder()
                 .sessionId("old-session")
-                .sessionSeq(1)
-                .conversationDate(oldDate)
-                .speaker(Speaker.CLIENT)
-                .script("오래된 메시지입니다.")
+                .userId("old-user")
+                .startTime(oldDate)
+                .endTime(oldDate.plusMinutes(5))
+                .conversation(List.of(
+                    new ConversationEntry(ConversationEntry.Speaker.patient, "오래된 메시지입니다.")
+                ))
                 .build();
 
         // 최근 데이터
         Transcript recentTranscript = Transcript.builder()
                 .sessionId("recent-session")
-                .sessionSeq(1)
-                .conversationDate(recentDate)
-                .speaker(Speaker.CLIENT)
-                .script("최근 메시지입니다.")
+                .userId("recent-user")
+                .startTime(recentDate)
+                .endTime(recentDate.plusMinutes(5))
+                .conversation(List.of(
+                    new ConversationEntry(ConversationEntry.Speaker.patient, "최근 메시지입니다.")
+                ))
                 .build();
 
         transcriptRepository.save(oldTranscript);
@@ -175,28 +176,31 @@ class TranscriptBatchIntegrationTest {
         assertThat(response.processedCount()).isEqualTo(1);
 
         System.out.println("=== 날짜 범위 배치 완료 ===");
-        System.out.println("전체 데이터: 2개, 처리된 데이터: " + response.processedCount() + "개");
+        System.out.println("전체 Transcript 문서: 2개, 처리된 문서: " + response.processedCount() + "개");
     }
 
     @Test
     @DisplayName("배치 성능 테스트 (대용량 데이터)")
     void 대용량_데이터_배치_성능_테스트() {
-        // Given: 대용량 테스트 데이터 생성 (100개)
+        // Given: 대용량 테스트 데이터 생성 (50개 transcript documents)
         LocalDateTime baseDate = LocalDateTime.now().minusHours(1);
         
-        for (int i = 1; i <= 100; i++) {
+        for (int i = 1; i <= 50; i++) {
             Transcript transcript = Transcript.builder()
                     .sessionId("performance-test-session-" + (i % 10)) // 10개 세션
-                    .sessionSeq(i)
-                    .conversationDate(baseDate.plusSeconds(i))
-                    .speaker(i % 2 == 0 ? Speaker.CLIENT : Speaker.AI)
-                    .script("성능 테스트 메시지 " + i + "번째 입니다.")
+                    .userId("test-user-" + i)
+                    .startTime(baseDate.plusSeconds(i))
+                    .endTime(baseDate.plusSeconds(i).plusMinutes(5))
+                    .conversation(List.of(
+                        new ConversationEntry(ConversationEntry.Speaker.patient, "성능 테스트 메시지 " + i + "번째입니다."),
+                        new ConversationEntry(ConversationEntry.Speaker.ai, "응답 메시지 " + i + "번째입니다.")
+                    ))
                     .build();
             
             transcriptRepository.save(transcript);
         }
 
-        assertThat(transcriptRepository.count()).isEqualTo(100);
+        assertThat(transcriptRepository.count()).isEqualTo(50);
 
         // When: 배치 실행 시간 측정
         long startTime = System.currentTimeMillis();
@@ -211,14 +215,14 @@ class TranscriptBatchIntegrationTest {
         long endTime = System.currentTimeMillis();
         long executionTime = endTime - startTime;
 
-        // Then: 성능 검증
+        // Then: 성능 검증 (50 transcript documents)
         assertThat(response).isNotNull();
-        assertThat(response.processedCount()).isEqualTo(100);
+        assertThat(response.processedCount()).isEqualTo(50);
         assertThat(executionTime).isLessThan(TimeUnit.SECONDS.toMillis(30)); // 30초 이내
 
         System.out.println("=== 성능 테스트 완료 ===");
-        System.out.println("처리된 데이터: " + response.processedCount() + "개");
+        System.out.println("처리된 Transcript 문서: " + response.processedCount() + "개");
         System.out.println("실행 시간: " + executionTime + "ms");
-        System.out.println("처리 속도: " + (response.processedCount() * 1000.0 / executionTime) + " msg/sec");
+        System.out.println("처리 속도: " + (response.processedCount() * 1000.0 / executionTime) + " docs/sec");
     }
 } 
