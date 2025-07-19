@@ -21,8 +21,8 @@ public class TranscriptReader {
     private final MongoTemplate batchMongoTemplate;
     private final TranscriptBatchService transcriptBatchService;
 
-    //날짜 기반으로 Transcript 읽기 (startTime 기준)
-    public ItemReader<Transcript> createDateBasedReader(String date) {
+    //유저별 기간 기반으로 Transcript 읽기
+    public ItemReader<Transcript> createPeriodBasedReader(String userId, String fromDate, String toDate) {
         return new ItemReader<Transcript>() {
             private Iterator<Transcript> transcriptIterator;
             private boolean initialized = false;
@@ -30,45 +30,16 @@ public class TranscriptReader {
             @Override
             public Transcript read() throws Exception {
                 if (!initialized) {
-                    LocalDateTime targetDate = date != null ? 
-                        LocalDateTime.parse(date, DateTimeFormatter.ISO_LOCAL_DATE_TIME) : 
-                        LocalDateTime.now().minusDays(1); //기본값: 어제
-
-                    List<Transcript> transcripts = transcriptBatchService.findByStartTimeAfter(targetDate);
+                    LocalDateTime fromDateTime = LocalDateTime.parse(fromDate, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                    LocalDateTime toDateTime = LocalDateTime.parse(toDate, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
                     
-                    // 기본적인 유효성 검증을 여기서 수행
-                    transcripts = transcripts.stream()
-                        .filter(transcript -> isValidTranscript(transcript))
-                        .collect(Collectors.toList());
-                        
-                    transcriptIterator = transcripts.iterator();
-                    initialized = true;
-                }
-
-                return transcriptIterator.hasNext() ? transcriptIterator.next() : null;
-            }
-            
-            private boolean isValidTranscript(Transcript transcript) {
-                return transcript != null && 
-                       transcript.getTranscriptId() != null && 
-                       transcript.getConversation() != null && 
-                       !transcript.getConversation().isEmpty() &&
-                       transcript.getConversation().stream()
-                           .anyMatch(entry -> entry.getContent() != null && !entry.getContent().trim().isEmpty());
-            }
-        };
-    }
-
-    //ID 기반으로 Transcript 읽기
-    public ItemReader<Transcript> createIdBasedReader(List<String> ids) {
-        return new ItemReader<Transcript>() {
-            private Iterator<Transcript> transcriptIterator;
-            private boolean initialized = false;
-
-            @Override
-            public Transcript read() throws Exception {
-                if (!initialized) {
-                    List<Transcript> transcripts = transcriptBatchService.findByIds(ids);
+                    // userId가 비어있으면 모든 유저 데이터 조회 (스케줄러용)
+                    List<Transcript> transcripts;
+                    if (userId == null || userId.trim().isEmpty()) {
+                        transcripts = transcriptBatchService.findByPeriod(fromDateTime, toDateTime);
+                    } else {
+                        transcripts = transcriptBatchService.findByUserIdAndPeriod(userId, fromDateTime, toDateTime);
+                    }
                     
                     // 기본적인 유효성 검증을 여기서 수행
                     transcripts = transcripts.stream()

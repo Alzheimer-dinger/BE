@@ -1,10 +1,16 @@
 package opensource.alzheimerdinger.core.domain.batch.application.dto.request;
 
-import java.util.List;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 
-//배치 실행 요청 DTO
+//배치 실행 요청 DTO (특정 유저 처리용)
 public record TranscriptBatchRequest(
-        String date, //배치 실행 기준 날짜
-        List<String> targetIds //특정 ID들만 처리할 경우
+        @NotBlank(message = "유저 ID는 필수입니다")
+        String userId,                      // 처리할 유저 ID (필수)
+        @NotNull
+        LocalDateTime fromDate,             // 시작 날짜/시간 (포함)
+        @NotNull
+        LocalDateTime toDate                // 종료 날짜/시간 (미포함)
 ) {
 } 

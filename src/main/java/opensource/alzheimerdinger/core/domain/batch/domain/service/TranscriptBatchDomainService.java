@@ -8,8 +8,7 @@ import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static opensource.alzheimerdinger.core.global.exception.code.status.BatchErrorStatus.*;
@@ -24,31 +23,34 @@ public class TranscriptBatchDomainService {
     
     private final JobExplorer jobExplorer;
     
+    // 날짜 범위 제한 (수정 용이하도록 상수 분리)
+    private static final int MAX_DATE_RANGE_DAYS = 31;
+    
     // ===== 요청 검증 로직 =====
     
     /**
-     * 배치 요청 파라미터 검증
+     * 배치 요청 파라미터 검증 (API용 - userId 필수)
      */
-    public void validateBatchRequest(String date, List<String> targetIds) {
-        // 필수 파라미터 검증
-        if ((date == null || date.trim().isEmpty()) && 
-            (targetIds == null || targetIds.isEmpty())) {
+    public void validateBatchRequest(String userId, LocalDateTime fromDate, LocalDateTime toDate) {
+        // 필수 파라미터 검증 (fromDate, toDate는 필수)
+        if (fromDate == null || toDate == null) {
             throw new RestApiException(BATCH_EMPTY_REQUEST_PARAMS);
         }
         
-        // 대상 ID 검증
-        if (targetIds != null && 
-            targetIds.stream().anyMatch(id -> id == null || id.trim().isEmpty())) {
-            throw new RestApiException(BATCH_INVALID_TARGET_IDS);
+        // 날짜 범위 검증
+        if (fromDate.isAfter(toDate) || fromDate.isEqual(toDate)) {
+            throw new RestApiException(BATCH_INVALID_DATE_RANGE);
         }
         
-        // 날짜 형식 검증
-        if (date != null) {
-            try {
-                LocalDateTime.parse(date, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-            } catch (DateTimeParseException e) {
-                throw new RestApiException(BATCH_INVALID_DATE_FORMAT);
-            }
+        // 날짜 범위 크기 제한 (수정 용이)
+        long daysBetween = ChronoUnit.DAYS.between(fromDate, toDate);
+        if (daysBetween > MAX_DATE_RANGE_DAYS) {
+            throw new RestApiException(BATCH_DATE_RANGE_TOO_LARGE);
+        }
+        
+        // userId 검증 (API에서는 항상 값이 있어야 함)
+        if (userId == null || userId.trim().isEmpty()) {
+            throw new RestApiException(BATCH_INVALID_USER_ID);
         }
     }
     
@@ -65,8 +67,11 @@ public class TranscriptBatchDomainService {
     
     // ===== 공통 유틸리티 =====
     
-    public boolean hasTargetIds(List<String> targetIds) {
-        return targetIds != null && !targetIds.isEmpty();
+    /**
+     * 특정 유저 데이터 처리 여부 확인
+     */
+    public boolean hasSpecificUser(String userId) {
+        return userId != null && !userId.trim().isEmpty();
     }
     
     // ===== 내부 헬퍼 메서드 =====

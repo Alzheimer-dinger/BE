@@ -18,15 +18,21 @@ public class TranscriptBatchService {
 
     private final MongoTemplate batchMongoTemplate;
 
-    //특정 날짜 이후의 Transcript 조회 (startTime 기준)
-    public List<Transcript> findByStartTimeAfter(LocalDateTime date) {
-        Query query = new Query(Criteria.where("startTime").gte(date));
+    //특정 유저의 특정 기간 Transcript 조회
+    public List<Transcript> findByUserIdAndPeriod(String userId, LocalDateTime fromDate, LocalDateTime toDate) {
+        Criteria criteria = Criteria.where("startTime").gte(fromDate).lt(toDate);
+        
+        if (userId != null && !userId.trim().isEmpty()) {
+            criteria.and("userId").is(userId);
+        }
+        
+        Query query = new Query(criteria);
         return batchMongoTemplate.find(query, Transcript.class);
     }
 
-    //특정 ID들의 Transcript 조회
-    public List<Transcript> findByIds(List<String> ids) {
-        Query query = new Query(Criteria.where("transcriptId").in(ids));
+    //모든 유저의 특정 기간 Transcript 조회 (스케줄러용)
+    public List<Transcript> findByPeriod(LocalDateTime fromDate, LocalDateTime toDate) {
+        Query query = new Query(Criteria.where("startTime").gte(fromDate).lt(toDate));
         return batchMongoTemplate.find(query, Transcript.class);
     }
 } 

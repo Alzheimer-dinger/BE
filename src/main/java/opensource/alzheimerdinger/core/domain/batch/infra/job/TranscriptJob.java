@@ -22,7 +22,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 /**
  * Transcript 배치 작업 설정
- * MongoDB에서 Transcript 데이터를 읽어 Kafka로 메시지 전송
+ * MongoDB에서 특정 유저의 특정 기간 Transcript 데이터를 읽어 Kafka로 메시지 전송
  */
 @Configuration
 @RequiredArgsConstructor
@@ -48,17 +48,20 @@ public class TranscriptJob {
     public Step transcriptStep() {
         return new StepBuilder("transcriptStep", jobRepository)
                 .<Transcript, TranscriptDto>chunk(100, transactionManager)
-                .reader(transcriptItemReader(null))
+                .reader(transcriptItemReader(null, null, null))
                 .processor(transcriptItemProcessor())
                 .writer(transcriptItemWriter())
                 .build();
     }
 
-    //Transcript Reader 정의 - MongoDB에서 데이터 읽기
+    //Transcript Reader 정의 - MongoDB에서 특정 유저/기간 데이터 읽기
     @Bean
     @StepScope
-    public ItemReader<Transcript> transcriptItemReader(@Value("#{jobParameters['date'] ?: null}") String date) {
-        return transcriptReader.createDateBasedReader(date);
+    public ItemReader<Transcript> transcriptItemReader(
+            @Value("#{jobParameters['userId'] ?: ''}") String userId,
+            @Value("#{jobParameters['fromDate'] ?: null}") String fromDate,
+            @Value("#{jobParameters['toDate'] ?: null}") String toDate) {
+        return transcriptReader.createPeriodBasedReader(userId, fromDate, toDate);
     }
 
     //Transcript Processor 정의 - 데이터 변환

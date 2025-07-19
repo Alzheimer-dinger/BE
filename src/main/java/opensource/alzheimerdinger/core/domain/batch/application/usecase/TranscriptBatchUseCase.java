@@ -14,6 +14,8 @@ import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,28 +31,44 @@ public class TranscriptBatchUseCase {
     private final Job transcriptJob;
     private final TranscriptBatchDomainService transcriptBatchDomainService;
 
-    // 배치 실행 메인 메서드
+    // API용 - 특정 유저 배치 실행
     public TranscriptBatchResponse executeBatch(TranscriptBatchRequest request) {
         // 도메인 서비스에서 요청 검증
-        transcriptBatchDomainService.validateBatchRequest(request.date(), request.targetIds());
+        transcriptBatchDomainService.validateBatchRequest(
+            request.userId(), request.fromDate(), request.toDate());
         transcriptBatchDomainService.validateCanExecute("transcriptJob");
         
         String jobId = UUID.randomUUID().toString();
         
-        if (transcriptBatchDomainService.hasTargetIds(request.targetIds())) {
-            // 특정 ID들만 처리
-            return executeTranscriptBatchByIds(request.targetIds(), jobId);
-        } else {
-            // 날짜 기반 처리
-            return executeTranscriptBatch(request.date(), jobId);
-        }
+        // 특정 유저 처리
+        return executeTranscriptBatch(request.userId(), request.fromDate(), request.toDate(), jobId);
     }
 
-    //날짜 기반 Transcript 배치 실행
-    private TranscriptBatchResponse executeTranscriptBatch(String date, String jobId) {
+    // 스케줄러용 - 모든 유저 배치 실행
+    public TranscriptBatchResponse executeScheduledBatch(LocalDateTime fromDate, LocalDateTime toDate) {
+        // 기본 날짜 검증만 수행 (userId 검증 제외)
+        if (fromDate == null || toDate == null) {
+            throw new RestApiException(BATCH_EMPTY_REQUEST_PARAMS);
+        }
+        if (fromDate.isAfter(toDate) || fromDate.isEqual(toDate)) {
+            throw new RestApiException(BATCH_INVALID_DATE_RANGE);
+        }
+        
+        transcriptBatchDomainService.validateCanExecute("transcriptJob");
+        
+        String jobId = UUID.randomUUID().toString();
+        
+        // 모든 유저 처리 (userId = null)
+        return executeTranscriptBatch(null, fromDate, toDate, jobId);
+    }
+
+    //유저별 기간 Transcript 배치 실행 (내부 공통 메서드)
+    private TranscriptBatchResponse executeTranscriptBatch(String userId, LocalDateTime fromDate, LocalDateTime toDate, String jobId) {
         try {
             JobParameters jobParameters = new JobParametersBuilder()
-                    .addString("date", date)
+                    .addString("userId", userId != null ? userId : "")
+                    .addString("fromDate", fromDate.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+                    .addString("toDate", toDate.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
                     .addString("jobId", jobId)
                     .addLong("timestamp", System.currentTimeMillis())
                     .toJobParameters();
@@ -58,40 +76,18 @@ public class TranscriptBatchUseCase {
             JobExecution jobExecution = jobLauncher.run(transcriptJob, jobParameters);
             
             // JobExecution에서 직접 응답 생성
-            return createResponseFromJobExecution(jobExecution, jobId);
+            return createResponseFromJobExecution(jobExecution, jobId, userId, fromDate, toDate);
             
         } catch (Exception e) {
-            log.error("Error executing Transcript batch job for date: {}", date, e);
-            throw new RestApiException(BATCH_JOB_EXECUTION_FAILED);
-        }
-    }
-
-    //ID 기반 Transcript 배치 실행
-    private TranscriptBatchResponse executeTranscriptBatchByIds(List<String> ids, String jobId) {
-        try {
-            JobParameters jobParameters = new JobParametersBuilder()
-                    .addString("ids", String.join(",", ids))
-                    .addString("jobId", jobId)
-                    .addLong("timestamp", System.currentTimeMillis())
-                    .toJobParameters();
-
-            JobExecution jobExecution = jobLauncher.run(transcriptJob, jobParameters);
-            
-            // JobExecution에서 직접 응답 생성
-            return createResponseFromJobExecution(jobExecution, jobId, ids);
-            
-        } catch (Exception e) {
-            log.error("Error executing Transcript batch job for ids: {}", ids, e);
+            log.error("Error executing Transcript batch job for user: {}, period: {} ~ {}", 
+                    userId, fromDate, toDate, e);
             throw new RestApiException(BATCH_JOB_EXECUTION_FAILED);
         }
     }
 
     // JobExecution에서 응답 생성
-    private TranscriptBatchResponse createResponseFromJobExecution(JobExecution jobExecution, String jobId) {
-        return createResponseFromJobExecution(jobExecution, jobId, null);
-    }
-    
-    private TranscriptBatchResponse createResponseFromJobExecution(JobExecution jobExecution, String jobId, List<String> targetIds) {
+    private TranscriptBatchResponse createResponseFromJobExecution(
+            JobExecution jobExecution, String jobId, String userId, LocalDateTime fromDate, LocalDateTime toDate) {
         BatchStatus status = jobExecution.getStatus();
         String statusMessage;
         
@@ -108,12 +104,16 @@ public class TranscriptBatchUseCase {
                 .mapToInt(step -> (int) step.getWriteCount())
                 .sum();
         
+        // 처리된 ID 목록 (실제로는 처리된 transcript ID들을 수집해야 하지만 일단 null로)
+        List<String> processedIds = null;
+        
         return new TranscriptBatchResponse(
                 jobId,
                 statusMessage,
-                "Transcript batch processing completed",
+                String.format("Transcript batch processing completed for user: %s, period: %s ~ %s", 
+                        userId != null ? userId : "ALL", fromDate, toDate),
                 processedCount,
-                targetIds,
+                processedIds,
                 System.currentTimeMillis()
         );
     }
