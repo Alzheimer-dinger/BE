@@ -1,14 +1,14 @@
 package opensource.alzheimerdinger.core.domain.batch.application.dto.response;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
-public record XXXBatchResponse(
+//배치 실행 결과 응답 DTO
+public record TranscriptBatchResponse(
         String jobId,
         String status,
-        LocalDateTime startTime,
-        LocalDateTime endTime,
+        String message,
         Integer processedCount,
         List<String> processedIds,
-        String message
-) {} 
+        Long executionTime
+) {
+} 
