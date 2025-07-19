@@ -29,7 +29,7 @@ spring:
       group-id: ${KAFKA_CONSUMER_COGNITIVE_GROUP:cognitive-consumer-group}
 
     topics:
-      transcript: ${KAFKA_TOPIC_TRANSCRIPT:ai-transcript}
+      transcript: ${KAFKA_TOPIC_TRANSCRIPT:transcript}
       emotion-analysis: ${KAFKA_TOPIC_EMOTION_ANALYSIS:emotion-analysis}
       cognitive-report: ${KAFKA_TOPIC_COGNITIVE_REPORT:cognitive-report}
 
