@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.domain.batch.domain.service.TranscriptBatchService;
 import opensource.alzheimerdinger.core.domain.transcript.domain.entity.Transcript;
 import org.springframework.batch.item.ItemReader;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -18,7 +17,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TranscriptReader {
 
-    private final MongoTemplate batchMongoTemplate;
     private final TranscriptBatchService transcriptBatchService;
 
     //유저별 기간 기반으로 Transcript 읽기

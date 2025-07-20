@@ -16,7 +16,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TranscriptBatchService {
 
-    private final MongoTemplate batchMongoTemplate;
+    private final MongoTemplate mongoTemplate;
 
     //특정 유저의 특정 기간 Transcript 조회
     public List<Transcript> findByUserIdAndPeriod(String userId, LocalDateTime fromDate, LocalDateTime toDate) {
@@ -27,12 +27,12 @@ public class TranscriptBatchService {
         }
         
         Query query = new Query(criteria);
-        return batchMongoTemplate.find(query, Transcript.class);
+        return mongoTemplate.find(query, Transcript.class);
     }
 
     //모든 유저의 특정 기간 Transcript 조회 (스케줄러용)
     public List<Transcript> findByPeriod(LocalDateTime fromDate, LocalDateTime toDate) {
         Query query = new Query(Criteria.where("startTime").gte(fromDate).lt(toDate));
-        return batchMongoTemplate.find(query, Transcript.class);
+        return mongoTemplate.find(query, Transcript.class);
     }
 } 
