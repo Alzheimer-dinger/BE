@@ -1,4 +1,4 @@
-package opensource.alzheimerdinger.core.domain.batch.infra.step;
+package opensource.alzheimerdinger.core.domain.batch.infra.config.step;
 
 import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.domain.batch.application.dto.TranscriptDto;
