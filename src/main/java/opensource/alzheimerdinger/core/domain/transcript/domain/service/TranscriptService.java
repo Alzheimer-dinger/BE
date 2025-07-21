@@ -22,6 +22,7 @@ public class TranscriptService {
                 .startTime(request.getStartTime())
                 .endTime(request.getEndTime())
                 .conversation(request.getConversation())
+                .summary(request.getSummary())
                 .build();
         return repository.save(entity);
     }
