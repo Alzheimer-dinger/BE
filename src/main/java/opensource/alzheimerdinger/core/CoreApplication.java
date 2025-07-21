@@ -7,6 +7,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 @OpenAPIDefinition(
         info = @Info(
@@ -20,6 +21,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 })
 @SpringBootApplication
 @ConfigurationPropertiesScan
+@EnableMongoRepositories
 public class CoreApplication {
 
     public static void main(String[] args) {
