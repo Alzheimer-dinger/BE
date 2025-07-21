@@ -81,44 +81,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-//    @Bean
-//    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-//        http
-//                .cors(Customizer.withDefaults())
-//                .csrf(AbstractHttpConfigurer::disable)
-//                .httpBasic(AbstractHttpConfigurer::disable)
-//                .formLogin(AbstractHttpConfigurer::disable)
-//                .logout(AbstractHttpConfigurer::disable)
-//
-//                .authorizeHttpRequests(auth -> auth
-//                        // CORS pre-flight
-//                        .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
-//
-//                        // Swagger UI + API docs + webjars
-//                        .requestMatchers(
-//                                "/swagger-ui/**",
-//                                "/v3/api-docs/**",
-//                                "/swagger-ui.html",
-//                                "/webjars/**"
-//                        ).permitAll()
-//
-//                        // 가입·로그인, 토큰 재발급
-//                        .requestMatchers(HttpMethod.POST, "/api/users/sign-up", "/api/users/login").permitAll()
-//                        .requestMatchers(HttpMethod.POST, "/users/token").hasRole("USER")
-//
-//                        // 그 외는 모두 인증 필요
-//                        .anyRequest().authenticated()
-//                )
-//
-//                // 세션 끄고 JWT 필터 등록
-//                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-//                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-//                .exceptionHandling(ex -> ex.authenticationEntryPoint(
-//                        (req, res, ex2) -> res.sendError(res.getStatus(), "토큰 오류")
-//                ));
-//
-//        return http.build();
-//    }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
