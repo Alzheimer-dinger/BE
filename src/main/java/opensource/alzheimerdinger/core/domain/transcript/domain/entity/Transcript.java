@@ -23,4 +23,5 @@ public class Transcript {
     private LocalDateTime endTime;
 
     private List<ConversationEntry> conversation;
+    private List<SummaryEntry> summary;
 }

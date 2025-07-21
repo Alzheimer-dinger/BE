@@ -53,12 +53,33 @@ jwt:
   access:
     expiration: 360000
 
+springdoc:
+  swagger-ui:
+    groups-order: DESC # path, query, body, response 순서대로 출력
+    tags-sorter: alpha # 태그를 알파벳 순으로 정렬
+    operations-sorter: method # delete - get - patch - post - put 순으로 정렬
+  paths-to-match:
+    - /api/**
+
+
 exclude-auth-path-patterns:
   paths:
     - path-pattern: /api/users/sign-up
       method: POST
     - path-pattern: /api/users/login
       method: POST
+    - path-pattern: /swagger-ui.html
+      method: GET
+    - path-pattern: /swagger-ui/index.html
+      method: GET
+    - path-pattern: /swagger-ui/**
+      method: GET
+    - path-pattern: /v3/api-docs
+      method: GET
+    - path-pattern: /v3/api-docs/swagger-config
+      method: GET
+    - path-pattern: /webjars
+      method: GET
     - path-pattern: /api/batch/transcript/execute
       method: POST
 
@@ -68,5 +89,30 @@ exclude-blacklist-path-patterns:
       method: POST
     - path-pattern: /api/users/login
       method: POST
+    - path-pattern: /swagger-ui.html
+      method: GET
+    - path-pattern: /swagger-ui/index.html
+      method: GET
+    - path-pattern: /swagger-ui/**
+      method: GET
+    - path-pattern: /v3/api-docs
+      method: GET
+    - path-pattern: /v3/api-docs/swagger-config
+      method: GET
+    - path-pattern: /webjars
+      method: GET
+
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.apache.kafka: WARN
+    org.springframework.kafka: INFO
+
+CORS:
+  allowed-origins: "*"
+  allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
+  allowed-headers: "*"
+  max-age: 3600
     - path-pattern: /api/batch/transcript/execute
       method: POST
