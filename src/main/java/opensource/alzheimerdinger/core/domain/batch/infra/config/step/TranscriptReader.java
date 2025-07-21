@@ -1,4 +1,4 @@
-package opensource.alzheimerdinger.core.domain.batch.infra.step;
+package opensource.alzheimerdinger.core.domain.batch.infra.config.step;
 
 import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.domain.batch.domain.service.TranscriptBatchService;
@@ -12,15 +12,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-//MongoDB에서 Transcript 데이터를 읽어오는 Reader
+//MongoDB에서 모든 유저의 Transcript 데이터를 읽어오는 Reader
 @Component
 @RequiredArgsConstructor
 public class TranscriptReader {
 
     private final TranscriptBatchService transcriptBatchService;
 
-    //유저별 기간 기반으로 Transcript 읽기
-    public ItemReader<Transcript> createPeriodBasedReader(String userId, String fromDate, String toDate) {
+    // 모든 유저 기간 기반 Transcript 읽기
+    public ItemReader<Transcript> createAllUsersReader(String fromDate, String toDate) {
         return new ItemReader<Transcript>() {
             private Iterator<Transcript> transcriptIterator;
             private boolean initialized = false;
@@ -31,15 +31,10 @@ public class TranscriptReader {
                     LocalDateTime fromDateTime = LocalDateTime.parse(fromDate, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
                     LocalDateTime toDateTime = LocalDateTime.parse(toDate, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
                     
-                    // userId가 비어있으면 모든 유저 데이터 조회 (스케줄러용)
-                    List<Transcript> transcripts;
-                    if (userId == null || userId.trim().isEmpty()) {
-                        transcripts = transcriptBatchService.findByPeriod(fromDateTime, toDateTime);
-                    } else {
-                        transcripts = transcriptBatchService.findByUserIdAndPeriod(userId, fromDateTime, toDateTime);
-                    }
+                    // 모든 유저 데이터 조회
+                    List<Transcript> transcripts = transcriptBatchService.findByPeriod(fromDateTime, toDateTime);
                     
-                    // 기본적인 유효성 검증을 여기서 수행
+                    // 기본적인 유효성 검증
                     transcripts = transcripts.stream()
                         .filter(transcript -> isValidTranscript(transcript))
                         .collect(Collectors.toList());
@@ -50,15 +45,15 @@ public class TranscriptReader {
 
                 return transcriptIterator.hasNext() ? transcriptIterator.next() : null;
             }
-            
-            private boolean isValidTranscript(Transcript transcript) {
-                return transcript != null && 
-                       transcript.getTranscriptId() != null && 
-                       transcript.getConversation() != null && 
-                       !transcript.getConversation().isEmpty() &&
-                       transcript.getConversation().stream()
-                           .anyMatch(entry -> entry.getContent() != null && !entry.getContent().trim().isEmpty());
-            }
         };
+    }
+
+    private boolean isValidTranscript(Transcript transcript) {
+        return transcript != null && 
+               transcript.getTranscriptId() != null && 
+               transcript.getConversation() != null && 
+               !transcript.getConversation().isEmpty() &&
+               transcript.getConversation().stream()
+                   .anyMatch(entry -> entry.getContent() != null && !entry.getContent().trim().isEmpty());
     }
 } 

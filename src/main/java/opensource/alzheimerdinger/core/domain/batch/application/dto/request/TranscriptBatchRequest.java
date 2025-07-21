@@ -8,9 +8,9 @@ import java.time.LocalDateTime;
 public record TranscriptBatchRequest(
         @NotBlank(message = "유저 ID는 필수입니다")
         String userId,                      // 처리할 유저 ID (필수)
-        @NotNull
+        @NotNull(message = "시작 날짜는 필수입니다")
         LocalDateTime fromDate,             // 시작 날짜/시간 (포함)
-        @NotNull
+        @NotNull(message = "종료 날짜는 필수입니다")
         LocalDateTime toDate                // 종료 날짜/시간 (미포함)
 ) {
 } 
