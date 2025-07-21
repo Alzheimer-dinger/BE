@@ -3,6 +3,7 @@ package opensource.alzheimerdinger.core.domain.transcript.application.dto.reques
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import opensource.alzheimerdinger.core.domain.transcript.domain.entity.ConversationEntry;
+import opensource.alzheimerdinger.core.domain.transcript.domain.entity.SummaryEntry;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,4 +17,5 @@ public class TranscriptRequest {
     private LocalDateTime endTime;
 
     private List<ConversationEntry> conversation;
+    private List<SummaryEntry> summary;
 }
