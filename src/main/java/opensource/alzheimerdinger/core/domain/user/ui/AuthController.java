@@ -90,6 +90,4 @@ public class AuthController {
         userAuthUseCase.logout(request);
         return BaseResponse.onSuccess();
     }
-
-    )
 }
