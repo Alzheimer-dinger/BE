@@ -1,8 +1,10 @@
 package opensource.alzheimerdinger.core.domain.user.domain.service;
 
 import lombok.RequiredArgsConstructor;
-import opensource.alzheimerdinger.core.domain.user.application.dto.request.LoginRequest;
+import opensource.alzheimerdinger.core.domain.user.application.dto.request.SignUpToGuardianRequest;
 import opensource.alzheimerdinger.core.domain.user.application.dto.request.SignUpRequest;
+import opensource.alzheimerdinger.core.domain.user.application.dto.response.ProfileResponse;
+import opensource.alzheimerdinger.core.domain.user.domain.entity.Role;
 import opensource.alzheimerdinger.core.domain.user.domain.entity.User;
 import opensource.alzheimerdinger.core.domain.user.domain.repository.UserRepository;
 import opensource.alzheimerdinger.core.global.exception.RestApiException;
@@ -27,13 +29,32 @@ public class UserService {
         return userRepository.existsByEmail(email);
     }
 
-    public void save(SignUpRequest request) {
-        userRepository.save(
+    public User save(SignUpRequest request, String code) {
+        return userRepository.save(
                 User.builder()
                         .email(request.email())
                         .password(passwordEncoder.encode(request.password()))
-                        .role(request.role())
+                        .role(request.patientCode() == null ? Role.PATIENT : Role.GUARDIAN)
+                        .patientCode(code)
+                        .gender(request.gender())
+                        .name(request.name())
                         .build()
         );
+    }
+
+    public User findPatient(String code) {
+        return userRepository.findByPatientCode(code)
+                .orElseThrow(() -> new RestApiException(_NOT_FOUND));
+    }
+
+    public User findUser(String userId) {
+        return  userRepository.findById(userId)
+                .orElseThrow(() -> new RestApiException(_NOT_FOUND));
+    }
+
+    public ProfileResponse findProfile(String userId) {
+        return userRepository.findById(userId)
+                .map(ProfileResponse::create)
+                .orElseThrow(() -> new RestApiException(_NOT_FOUND));
     }
 }

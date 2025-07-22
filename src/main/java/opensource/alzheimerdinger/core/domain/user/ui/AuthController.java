@@ -11,10 +11,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.domain.user.application.dto.request.LoginRequest;
+import opensource.alzheimerdinger.core.domain.user.application.dto.request.SignUpToGuardianRequest;
 import opensource.alzheimerdinger.core.domain.user.application.dto.request.SignUpRequest;
 import opensource.alzheimerdinger.core.domain.user.application.dto.response.LoginResponse;
 import opensource.alzheimerdinger.core.domain.user.application.usecase.UserAuthUseCase;
-import opensource.alzheimerdinger.core.global.annotation.CurrentUser;
 import opensource.alzheimerdinger.core.global.common.BaseResponse;
 import org.springframework.web.bind.annotation.*;
 
@@ -91,22 +91,5 @@ public class AuthController {
         return BaseResponse.onSuccess();
     }
 
-    @Operation(
-            summary = "인증 테스트",
-            description = "@CurrentUser 어노테이션으로 추출된 userId 반환",
-            security = @SecurityRequirement(name = "JWT"),
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "인증된 userId 반환",
-                            content = @Content(schema = @Schema(implementation = String.class))),
-                    @ApiResponse(responseCode = "401", description = "인증 실패",
-                            content = @Content)
-            }
     )
-    @GetMapping("/test")
-    public BaseResponse<String> test(
-            @CurrentUser
-            @Parameter(description = "인증된 사용자 ID", example = "user-id-123")
-            String userId) {
-        return BaseResponse.onSuccess(userId);
-    }
 }
