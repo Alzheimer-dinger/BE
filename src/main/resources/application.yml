@@ -53,6 +53,10 @@ jwt:
   access:
     expiration: 360000
 
+fcm:
+  firebase_config_path: alzheimerdinger-b9e53-firebase-adminsdk-fbsvc-a52d1783df.json
+  prefix: firebase/
+
 springdoc:
   swagger-ui:
     groups-order: DESC # path, query, body, response 순서대로 출력

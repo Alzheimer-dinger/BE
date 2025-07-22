@@ -35,3 +35,4 @@ out/
 
 ### VS Code ###
 .vscode/
+/src/main/resources/firebase/alzheimerdinger-b9e53-firebase-adminsdk-fbsvc-a52d1783df.json
