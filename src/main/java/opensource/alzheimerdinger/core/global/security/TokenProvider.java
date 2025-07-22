@@ -8,6 +8,7 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.domain.user.domain.entity.Role;
+import opensource.alzheimerdinger.core.global.exception.RestApiException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -23,6 +24,9 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
+
+import static opensource.alzheimerdinger.core.global.exception.code.status.AuthErrorStatus.INVALID_ACCESS_TOKEN;
+import static opensource.alzheimerdinger.core.global.exception.code.status.AuthErrorStatus.UNSUPPORTED_JWT;
 
 
 @Service
@@ -87,7 +91,10 @@ public class TokenProvider {
 
     public Authentication getAuthentication(String token) {
         Claims claims = getClaims(token);
-        Set<SimpleGrantedAuthority> authorities = Collections.singleton(new SimpleGrantedAuthority("ROLE_USER"));
+        Role role = getRole(token)
+                .orElseThrow(() -> new RestApiException(INVALID_ACCESS_TOKEN));
+
+        Set<SimpleGrantedAuthority> authorities = Collections.singleton(new SimpleGrantedAuthority(role.getName()));
         return new UsernamePasswordAuthenticationToken(new User(claims.get(ID_CLAIM, String.class), "", authorities), token, authorities);
     }
 
@@ -101,7 +108,8 @@ public class TokenProvider {
 
     public Optional<Role> getRole(String token) {
         try {
-            return Optional.ofNullable(getClaims(token).get(ROLE_CLAIM, Role.class));
+            String role = getClaims(token).get(ROLE_CLAIM, String.class);
+            return Optional.of(Role.valueOf(role));
         } catch (Exception e) {
             return Optional.empty();
         }
@@ -131,5 +139,14 @@ public class TokenProvider {
     public Optional<Duration> getRemainingDuration(String token) {
         return getExpiration(token)
                 .map(date -> Duration.between(Instant.now(), date.toInstant()));
+    }
+
+    public boolean isAccessToken(String token) {
+        try {
+            String subject = getClaims(token).getSubject();
+            return ACCESS_TOKEN_SUBJECT.equals(subject);
+        } catch (Exception e) {
+            throw new RestApiException(UNSUPPORTED_JWT);
+        }
     }
 }

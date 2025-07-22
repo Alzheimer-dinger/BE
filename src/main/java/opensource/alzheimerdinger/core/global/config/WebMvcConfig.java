@@ -3,6 +3,7 @@ package opensource.alzheimerdinger.core.global.config;
 import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.global.interceptor.JwtBlacklistInterceptor;
 import opensource.alzheimerdinger.core.global.resolver.CurrentUserArgumentResolver;
+import opensource.alzheimerdinger.core.global.resolver.RefreshTokenArgumentResolver;
 import opensource.alzheimerdinger.core.global.security.ExcludeBlacklistPathProperties;
 import opensource.alzheimerdinger.core.global.security.TokenProvider;
 import org.springframework.context.annotation.Configuration;
@@ -22,7 +23,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-        resolvers.add(new CurrentUserArgumentResolver(tokenProvider));
+        resolvers.addAll(List.of(
+                new CurrentUserArgumentResolver(tokenProvider),
+                new RefreshTokenArgumentResolver(tokenProvider)
+        ));
     }
 
     @Override
