@@ -82,6 +82,8 @@ exclude-auth-path-patterns:
       method: GET
     - path-pattern: /api/batch/transcript/execute
       method: POST
+    - path-pattern: /actuator/**
+      method: GET
 
 exclude-blacklist-path-patterns:
   paths:
@@ -101,6 +103,8 @@ exclude-blacklist-path-patterns:
       method: GET
     - path-pattern: /webjars
       method: GET
+    - path-pattern: /actuator/**
+      method: GET
 
 
 logging:
@@ -116,11 +120,18 @@ CORS:
   max-age: 3600
 
 management:
+  health:
+    mongo:
+      enabled: false # 임시 비활성화
   endpoints:
     web:
       exposure:
         include: health,info,prometheus
-  metrics:
-    export:
-      prometheus:
+
+  prometheus:
+    metrics:
+      export:
         enabled: true
+        descriptions: true
+        histogram-flavor: prometheus
+        step: 30s
