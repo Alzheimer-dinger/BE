@@ -15,6 +15,8 @@ import opensource.alzheimerdinger.core.domain.user.domain.service.*;
 import opensource.alzheimerdinger.core.global.exception.RestApiException;
 import opensource.alzheimerdinger.core.global.security.TokenProvider;
 import opensource.alzheimerdinger.core.global.util.SecureRandomGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -37,11 +39,15 @@ public class UserAuthUseCase {
     private final RelationService relationService;
     private final TokenBlacklistService tokenBlacklistService;
     private final TokenWhitelistService tokenWhitelistService;
+    private static final Logger log = LoggerFactory.getLogger(UserAuthUseCase.class);
 
     public void signUp(SignUpRequest request) {
         // 이미 가입된 이메일인지 확인
-        if (userService.isAlreadyRegistered(request.email()))
+        log.debug("[UserAuth] signUp start: email={}", request.email());
+        if (userService.isAlreadyRegistered(request.email())) {
+            log.warn("[UserAuth] signUp failed: email already registered");
             throw new RestApiException(ALREADY_REGISTERED_EMAIL);
+        }
 
         String code = secureRandomGenerator.generate();
 
@@ -57,9 +63,11 @@ public class UserAuthUseCase {
             relationService.save(patient, user, RelationStatus.REQUESTED, Role.GUARDIAN);
         }
 
+        log.info("[UserAuth] signUp success: userId={}", user.getUserId());
     }
 
     public LoginResponse login(LoginRequest request) {
+        log.debug("[UserAuth] login start: email={}", request.email());
         // 이메일로 유저 객체 조회
         User user = userService.findByEmail(request.email());
 
@@ -76,10 +84,12 @@ public class UserAuthUseCase {
                 .orElseThrow(() -> new RestApiException(EXPIRED_MEMBER_JWT));
         refreshTokenService.saveRefreshToken(user.getUserId(), refreshToken, tokenExpiration);
 
+        log.info("[UserAuth] login success: userId={}", user.getUserId());
         return new LoginResponse(accessToken, refreshToken);
     }
 
     public void logout(HttpServletRequest request) {
+        log.debug("[UserAuth] logout start");
         // 회원 정보 조회
         String accessToken = tokenProvider.getToken(request)
                 .orElseThrow(() -> new RestApiException(EMPTY_JWT));
@@ -94,5 +104,7 @@ public class UserAuthUseCase {
         tokenWhitelistService.deleteWhitelistToken(accessToken);
         refreshTokenService.deleteRefreshToken(userId);
         tokenBlacklistService.blacklist(accessToken, expiration);
+
+        log.info("[UserAuth] logout success: userId={}", userId);
     }
 }
