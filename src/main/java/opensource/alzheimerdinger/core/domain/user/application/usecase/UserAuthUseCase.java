@@ -54,9 +54,12 @@ public class UserAuthUseCase {
         if (request.patientCode() != null) {
             User patient = userService.findPatient(request.patientCode());
             if (!Objects.equals(patient.getPatientCode(), request.patientCode())) {
+                log.warn("[UserAuth] signUp failed: patientCode mismatch. requestCode={}, patientId={}",
+                        request.patientCode(), patient.getUserId());
                 throw new RestApiException(_NOT_FOUND);
             }
             relationService.save(patient, user, RelationStatus.REQUESTED, Role.GUARDIAN);
+            log.debug("[UserAuth] relation created: guardianId={}, patientId={}", user.getUserId(), patient.getUserId());
         }
 
         log.info("[UserAuth] signUp success: userId={}", user.getUserId());
@@ -66,11 +69,16 @@ public class UserAuthUseCase {
         log.debug("[UserAuth] login start: email={}", request.email());
         User user = userService.findByEmail(request.email());
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+            log.warn("[UserAuth] login failed: password mismatch for email={}", request.email());
             throw new RestApiException(LOGIN_ERROR);
         }
 
         String accessToken = tokenProvider.createAccessToken(user.getUserId(), user.getRole());
         String refreshToken = tokenProvider.createRefreshToken(user.getUserId(), user.getRole());
+        log.debug("[UserAuth] tokens created: userId={}, accessToken(expires in {}), refreshToken(expires in {})",
+                user.getUserId(),
+                tokenProvider.getRemainingDuration(accessToken).orElse(Duration.ZERO),
+                tokenProvider.getRemainingDuration(refreshToken).orElse(Duration.ZERO));
 
         Duration tokenExpiration = tokenProvider.getRemainingDuration(refreshToken)
                 .orElseThrow(() -> new RestApiException(EXPIRED_MEMBER_JWT));
@@ -83,15 +91,32 @@ public class UserAuthUseCase {
     public void logout(HttpServletRequest request) {
         log.debug("[UserAuth] logout start");
         String accessToken = tokenProvider.getToken(request)
-                .orElseThrow(() -> new RestApiException(EMPTY_JWT));
+                .orElseThrow(() -> {
+                    log.warn("[UserAuth] logout failed: No token found in request");
+                    return new RestApiException(EMPTY_JWT);
+                });
+        log.debug("[UserAuth] extracted accessToken: {}", accessToken);
+
         String userId = tokenProvider.getId(accessToken)
-                .orElseThrow(() -> new RestApiException(INVALID_ID_TOKEN));
+                .orElseThrow(() -> {
+                    log.warn("[UserAuth] logout failed: Invalid ID token");
+                    return new RestApiException(INVALID_ID_TOKEN);
+                });
+        log.debug("[UserAuth] parsed userId from token: {}", userId);
+
         Duration expiration = tokenProvider.getRemainingDuration(accessToken)
-                .orElseThrow(() -> new RestApiException(INVALID_ACCESS_TOKEN));
+                .orElseThrow(() -> {
+                    log.warn("[UserAuth] logout failed: Invalid access token (no expiration)");
+                    return new RestApiException(INVALID_ACCESS_TOKEN);
+                });
+        log.debug("[UserAuth] token expiration: {} seconds", expiration.toSeconds());
 
         tokenWhitelistService.deleteWhitelistToken(accessToken);
+        log.debug("[UserAuth] whitelist token deleted: {}", accessToken);
         refreshTokenService.deleteRefreshToken(userId);
+        log.debug("[UserAuth] refresh token deleted for userId={}", userId);
         tokenBlacklistService.blacklist(accessToken, expiration);
+        log.debug("[UserAuth] access token blacklisted: {}", accessToken);
 
         log.info("[UserAuth] logout success: userId={}", userId);
     }
