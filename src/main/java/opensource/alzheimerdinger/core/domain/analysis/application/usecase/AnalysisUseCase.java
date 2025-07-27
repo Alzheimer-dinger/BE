@@ -32,7 +32,7 @@ public class AnalysisUseCase {
 
 
     //일별 감정 분석 데이터 조회 (달력용 데이터 포함)
-    public AnalysisDayResponse getDayAnalysisData(String userId, LocalDateTime date) {
+    public AnalysisDayResponse getAnalysisDayData(String userId, LocalDateTime date) {
         return analysisService.getDayData(userId, date);
     }
 

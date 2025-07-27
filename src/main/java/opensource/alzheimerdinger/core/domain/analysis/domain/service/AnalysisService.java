@@ -131,15 +131,18 @@ public class AnalysisService {
     }
 
     private String getMainEmotion(Analysis analysis) {
-        Float maxScore = Math.max(analysis.getHappy(),
-                Math.max(analysis.getSad(),
-                        Math.max(analysis.getAngry(),
-                                Math.max(analysis.getSurprised(), analysis.getBored()))));
-
-        if (maxScore.equals(analysis.getHappy())) return "happy";
-        if (maxScore.equals(analysis.getSad())) return "sad";
-        if (maxScore.equals(analysis.getAngry())) return "angry";
-        if (maxScore.equals(analysis.getSurprised())) return "surprised";
+        float happy = analysis.getHappy();
+        float sad = analysis.getSad();
+        float angry = analysis.getAngry();
+        float surprised = analysis.getSurprised();
+        float bored = analysis.getBored();
+        
+        float maxScore = Math.max(happy, Math.max(sad, Math.max(angry, Math.max(surprised, bored))));
+        
+        if (maxScore == happy) return "happy";
+        if (maxScore == sad) return "sad";
+        if (maxScore == angry) return "angry";
+        if (maxScore == surprised) return "surprised";
         return "bored";
     }
 }
