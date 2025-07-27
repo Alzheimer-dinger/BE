@@ -2,6 +2,7 @@ package opensource.alzheimerdinger.core.domain.relation.ui;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -44,7 +45,7 @@ public class RelationController {
     @Operation(
             summary = "관계 요청 전송",
             description = "다른 사용자에게 보호자/피보호자 연결 요청을 보냄",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            requestBody = @RequestBody(
                     description = "연결 요청 정보",
                     required = true,
                     content = @Content(schema = @Schema(implementation = RelationConnectRequest.class))
@@ -62,7 +63,7 @@ public class RelationController {
     @Operation(
             summary = "관계 요청 재전송",
             description = "만료된 관계 요청을 다시 보냄",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            requestBody = @RequestBody(
                     description = "재전송 요청 정보",
                     required = true,
                     content = @Content(schema = @Schema(implementation = RelationReconnectRequest.class))
