@@ -63,6 +63,10 @@ dependencies {
     // Swagger
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8'
 
+    // JANSI
+    implementation 'org.fusesource.jansi:jansi:2.4.0'
+    runtimeOnly 'org.fusesource.jansi:jansi:2.4.0'
+
     // TSID
     implementation 'io.hypersistence:hypersistence-utils-hibernate-63:3.7.0'
     implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.5'
