@@ -62,14 +62,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (tokenProvider.validateToken(token)) {
                 log.info("[JwtAuthFilter] token valid, authenticating user");
                 setAuthentication(token);
+                // 토큰 캐시
                 tokenWhitelistService.whitelist(token, Duration.ofSeconds(30));
             } else {
                 log.warn("[JwtAuthFilter] invalid token");
                 throw new RestApiException(INVALID_ACCESS_TOKEN);
             }
-
-            // 토큰 캐시
-            tokenWhitelistService.whitelist(token, Duration.ofSeconds(30));
 
             filterChain.doFilter(request, response);
         } catch (RestApiException e) {
