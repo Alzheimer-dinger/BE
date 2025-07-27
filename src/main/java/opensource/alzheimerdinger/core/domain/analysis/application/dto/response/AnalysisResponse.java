@@ -13,7 +13,7 @@ public record AnalysisResponse(
         List<EmotionDataPoint> emotionTimeline,
         
         Integer totalParticipate,
-        String averageCallTime
+        String averageCallTime // 임시값으로 지정되어 있는 상황 AI쪽 구현 후 수정 필요
 ) {    
     public record EmotionDataPoint(
             LocalDateTime date,
