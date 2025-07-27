@@ -43,12 +43,14 @@ public class UserAuthUseCase {
 
     public void signUp(SignUpRequest request) {
         log.debug("[UserAuth] signUp start: email={}", request.email());
+        // 이미 가입된 이메일인지 확인
         if (userService.isAlreadyRegistered(request.email())) {
             log.warn("[UserAuth] signUp failed: email already registered");
             throw new RestApiException(ALREADY_REGISTERED_EMAIL);
         }
 
         String code = secureRandomGenerator.generate();
+        // DB에 저장
         User user = userService.save(request, code);
 
         if (request.patientCode() != null) {
@@ -67,12 +69,15 @@ public class UserAuthUseCase {
 
     public LoginResponse login(LoginRequest request) {
         log.debug("[UserAuth] login start: email={}", request.email());
+        // 이메일로 유저 객체 조회
         User user = userService.findByEmail(request.email());
+        // 해시로 암호화한 비밀번호와 매칭 검사
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             log.warn("[UserAuth] login failed: password mismatch for email={}", request.email());
             throw new RestApiException(LOGIN_ERROR);
         }
 
+        // 토큰 발행
         String accessToken = tokenProvider.createAccessToken(user.getUserId(), user.getRole());
         String refreshToken = tokenProvider.createRefreshToken(user.getUserId(), user.getRole());
         log.debug("[UserAuth] tokens created: userId={}, accessToken(expires in {}), refreshToken(expires in {})",
@@ -80,6 +85,7 @@ public class UserAuthUseCase {
                 tokenProvider.getRemainingDuration(accessToken).orElse(Duration.ZERO),
                 tokenProvider.getRemainingDuration(refreshToken).orElse(Duration.ZERO));
 
+        // refreshToken Redis에 저장
         Duration tokenExpiration = tokenProvider.getRemainingDuration(refreshToken)
                 .orElseThrow(() -> new RestApiException(EXPIRED_MEMBER_JWT));
         refreshTokenService.saveRefreshToken(user.getUserId(), refreshToken, tokenExpiration);
@@ -90,6 +96,7 @@ public class UserAuthUseCase {
 
     public void logout(HttpServletRequest request) {
         log.debug("[UserAuth] logout start");
+        // 회원 정보 조회
         String accessToken = tokenProvider.getToken(request)
                 .orElseThrow(() -> {
                     log.warn("[UserAuth] logout failed: No token found in request");
@@ -111,6 +118,7 @@ public class UserAuthUseCase {
                 });
         log.debug("[UserAuth] token expiration: {} seconds", expiration.toSeconds());
 
+        // 캐싱 및 저장된 토큰 삭제 후 기존 사용하던 엑세스 토큰 무효화 등록
         tokenWhitelistService.deleteWhitelistToken(accessToken);
         log.debug("[UserAuth] whitelist token deleted: {}", accessToken);
         refreshTokenService.deleteRefreshToken(userId);
