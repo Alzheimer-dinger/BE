@@ -1,10 +1,10 @@
 package opensource.alzheimerdinger.core.domain.analysis.application.dto.response;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 public record AnalysisReportResponse(
         String reportId,
         String userId,
-        LocalDateTime createdAt,
+        LocalDate createdAt,
         String report
 ) {}

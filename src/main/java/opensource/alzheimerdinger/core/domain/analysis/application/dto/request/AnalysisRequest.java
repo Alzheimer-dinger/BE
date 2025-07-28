@@ -1,11 +1,12 @@
 package opensource.alzheimerdinger.core.domain.analysis.application.dto.request;
 
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 public record AnalysisRequest(
-        @NotNull String userId,
-        @NotNull LocalDateTime start,
-        @NotNull LocalDateTime end
+        @NotEmpty String userId,
+        @NotNull LocalDate start,
+        @NotNull LocalDate end
 ) {}

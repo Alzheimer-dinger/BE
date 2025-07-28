@@ -11,7 +11,7 @@ import opensource.alzheimerdinger.core.domain.analysis.domain.entity.AnalysisRep
 import opensource.alzheimerdinger.core.domain.analysis.domain.service.AnalysisService;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Service
 @Transactional
@@ -32,7 +32,7 @@ public class AnalysisUseCase {
 
 
     //일별 감정 분석 데이터 조회 (달력용 데이터 포함)
-    public AnalysisDayResponse getAnalysisDayData(String userId, LocalDateTime date) {
+    public AnalysisDayResponse getAnalysisDayData(String userId, LocalDate date) {
         return analysisService.getDayData(userId, date);
     }
 
@@ -47,7 +47,7 @@ public class AnalysisUseCase {
         return new AnalysisReportResponse(
                 latestReport.getAnalysisReportId(),
                 request.userId(),
-                latestReport.getCreatedAt(),
+                latestReport.getCreatedAt().toLocalDate(),
                 latestReport.getReport()
         );
     }

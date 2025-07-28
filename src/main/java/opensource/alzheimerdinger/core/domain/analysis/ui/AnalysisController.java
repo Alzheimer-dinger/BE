@@ -18,7 +18,7 @@ import opensource.alzheimerdinger.core.global.common.BaseResponse;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Tag(name = "Analysis", description = "분석 리포트 API")
 @RestController
@@ -58,7 +58,7 @@ public class AnalysisController {
     )
     @GetMapping("/day")
     public BaseResponse<AnalysisDayResponse> getDayAnalysis(
-            @CurrentUser String userId, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime date) {
+            @CurrentUser String userId, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         return BaseResponse.onSuccess(analysisUseCase.getAnalysisDayData(userId, date));
     }
 

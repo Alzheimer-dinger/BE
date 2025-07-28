@@ -28,15 +28,19 @@ public class AnalysisService {
         return analysisRepository.findByUserAndPeriod(userId, start, end);
     }
 
-    public AnalysisResponse getPeriodData(String userId, LocalDateTime start, LocalDateTime end) {
-        List<Analysis> analyses = findAnalysisData(userId, start, end);
+    public AnalysisResponse getPeriodData(String userId, LocalDate start, LocalDate end) {
+        // LocalDate를 LocalDateTime으로 변환
+        LocalDateTime startDateTime = start.atStartOfDay();
+        LocalDateTime endDateTime = end.atTime(23, 59, 59);
+        
+        List<Analysis> analyses = findAnalysisData(userId, startDateTime, endDateTime);
         
         if (analyses.isEmpty()) {
             throw new RestApiException(_NOT_FOUND);
         }
 
         // 평균 위험 점수 계산
-        Float averageRiskScore = (float) analyses.stream()
+        Double averageRiskScore = analyses.stream()
                 .mapToDouble(Analysis::getRiskScore)
                 .average()
                 .orElse(0.0);
@@ -44,7 +48,7 @@ public class AnalysisService {
         // 감정 타임라인 생성
         List<AnalysisResponse.EmotionDataPoint> emotionTimeline = analyses.stream()
                 .map(analysis -> new AnalysisResponse.EmotionDataPoint(
-                        analysis.getCreatedAt(),
+                        analysis.getCreatedAt().toLocalDate(),
                         analysis.getHappy(),
                         analysis.getSad(),
                         analysis.getAngry(),
@@ -52,7 +56,7 @@ public class AnalysisService {
                         analysis.getBored(),
                         analysis.getRiskScore()
                 ))
-                .collect(Collectors.toList());
+                .toList();
 
         return new AnalysisResponse(
                 userId,
@@ -65,9 +69,9 @@ public class AnalysisService {
         );
     }
 
-    public AnalysisDayResponse getDayData(String userId, LocalDateTime date) {
-        LocalDateTime startOfDay = date.toLocalDate().atStartOfDay();
-        LocalDateTime endOfDay = startOfDay.plusDays(1).minusSeconds(1);
+    public AnalysisDayResponse getDayData(String userId, LocalDate date) {
+        LocalDateTime startOfDay = date.atStartOfDay();
+        LocalDateTime endOfDay = date.atTime(23, 59, 59);
         
         List<Analysis> dayAnalyses = findAnalysisData(userId, startOfDay, endOfDay);
         
@@ -94,10 +98,10 @@ public class AnalysisService {
 
      //달력 UI용 월간 감정 요약 데이터 생성
 
-    private List<AnalysisDayResponse.EmotionSummary> getMonthlyEmotion(String userId, LocalDateTime date) {
+    private List<AnalysisDayResponse.EmotionSummary> getMonthlyEmotion(String userId, LocalDate date) {
         // 해당 월의 첫날과 마지막날 계산
-        LocalDateTime startOfMonth = date.toLocalDate().withDayOfMonth(1).atStartOfDay();
-        LocalDateTime endOfMonth = startOfMonth.plusMonths(1).minusSeconds(1);
+        LocalDateTime startOfMonth = date.withDayOfMonth(1).atStartOfDay();
+        LocalDateTime endOfMonth = date.withDayOfMonth(date.lengthOfMonth()).atTime(23, 59, 59);
         
         // 해당 월의 모든 분석 데이터 조회
         List<Analysis> monthlyAnalyses = findAnalysisData(userId, startOfMonth, endOfMonth);
@@ -114,30 +118,31 @@ public class AnalysisService {
                     
                     // 해당 날의 마지막 분석 데이터에서 주요 감정 추출
                     Analysis lastAnalysisOfDay = dailyAnalyses.get(dailyAnalyses.size() - 1);
-                    String dominantEmotion = getMainEmotion(lastAnalysisOfDay);
+                    String mainEmotion = getMainEmotion(lastAnalysisOfDay);
                     
                     return new AnalysisDayResponse.EmotionSummary(
-                            dailyDate.atStartOfDay(), // 각 날짜의 00:00:00
-                            dominantEmotion
+                            dailyDate,
+                            mainEmotion
                     );
                 })
                 .sorted((a, b) -> a.date().compareTo(b.date())) // 날짜순 정렬
-                .collect(Collectors.toList());
+                .toList();
     }
 
-    public AnalysisReport findLatestReport(String userId, LocalDateTime periodEnd) {
-        return analysisReportRepository.findLatestReport(userId, periodEnd)
+    public AnalysisReport findLatestReport(String userId, LocalDate periodEnd) {
+        LocalDateTime periodEndDateTime = periodEnd.atTime(23, 59, 59);
+        return analysisReportRepository.findLatestReport(userId, periodEndDateTime)
                 .orElseThrow(() -> new RestApiException(_NOT_FOUND));
     }
 
     private String getMainEmotion(Analysis analysis) {
-        float happy = analysis.getHappy();
-        float sad = analysis.getSad();
-        float angry = analysis.getAngry();
-        float surprised = analysis.getSurprised();
-        float bored = analysis.getBored();
+        double happy = analysis.getHappy();
+        double sad = analysis.getSad();
+        double angry = analysis.getAngry();
+        double surprised = analysis.getSurprised();
+        double bored = analysis.getBored();
         
-        float maxScore = Math.max(happy, Math.max(sad, Math.max(angry, Math.max(surprised, bored))));
+        double maxScore = Math.max(happy, Math.max(sad, Math.max(angry, Math.max(surprised, bored))));
         
         if (maxScore == happy) return "happy";
         if (maxScore == sad) return "sad";

@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 import static opensource.alzheimerdinger.core.global.exception.code.status.GlobalErrorStatus._NOT_FOUND;
@@ -34,12 +35,12 @@ class AnalysisUseCaseTest {
     @Test
     void getAnalysisPeriodData_success() {
         // Given
-        LocalDateTime start = LocalDateTime.of(2024, 1, 1, 0, 0);
-        LocalDateTime end = LocalDateTime.of(2024, 1, 31, 23, 59);
+        LocalDate start = LocalDate.of(2024, 1, 1);
+        LocalDate end = LocalDate.of(2024, 1, 31);
         AnalysisRequest request = new AnalysisRequest("user123", start, end);
         
         AnalysisResponse expectedResponse = new AnalysisResponse(
-                "user123", start, end, 0.3f,
+                "user123", start, end, 0.3,
                 List.of(), 5, "10분 30초"
         );
         
@@ -51,15 +52,15 @@ class AnalysisUseCaseTest {
         // Then
         assertThat(result).isEqualTo(expectedResponse);
         assertThat(result.userId()).isEqualTo("user123");
-        assertThat(result.averageRiskScore()).isEqualTo(0.3f);
+        assertThat(result.averageRiskScore()).isEqualTo(0.3);
         verify(analysisService).getPeriodData("user123", start, end);
     }
 
     @Test
     void getAnalysisPeriodData_fail_no_data() {
         // Given
-        LocalDateTime start = LocalDateTime.of(2024, 1, 1, 0, 0);
-        LocalDateTime end = LocalDateTime.of(2024, 1, 31, 23, 59);
+        LocalDate start = LocalDate.of(2024, 1, 1);
+        LocalDate end = LocalDate.of(2024, 1, 31);
         AnalysisRequest request = new AnalysisRequest("user123", start, end);
         
         when(analysisService.getPeriodData("user123", start, end))
@@ -79,10 +80,10 @@ class AnalysisUseCaseTest {
     void getAnalysisDayData_success() {
         // Given
         String userId = "user123";
-        LocalDateTime date = LocalDateTime.of(2024, 1, 25, 14, 30);
+        LocalDate date = LocalDate.of(2024, 1, 25);
         
         AnalysisDayResponse expectedResponse = new AnalysisDayResponse(
-                userId, date, 0.8f, 0.1f, 0.05f, 0.03f, 0.02f, List.of()
+                userId, date, 0.8, 0.1, 0.05, 0.03, 0.02, List.of()
         );
         
         when(analysisService.getDayData(userId, date)).thenReturn(expectedResponse);
@@ -93,7 +94,7 @@ class AnalysisUseCaseTest {
         // Then
         assertThat(result).isEqualTo(expectedResponse);
         assertThat(result.userId()).isEqualTo(userId);
-        assertThat(result.happyScore()).isEqualTo(0.8f);
+        assertThat(result.happyScore()).isEqualTo(0.8);
         verify(analysisService).getDayData(userId, date);
     }
 
@@ -101,7 +102,7 @@ class AnalysisUseCaseTest {
     void getAnalysisData_fail_no_Day_data() {
         // Given
         String userId = "user123";
-        LocalDateTime date = LocalDateTime.of(2024, 1, 25, 14, 30);
+        LocalDate date = LocalDate.of(2024, 1, 25);
         
         when(analysisService.getDayData(userId, date))
                 .thenThrow(new RestApiException(_NOT_FOUND));
@@ -119,7 +120,7 @@ class AnalysisUseCaseTest {
     @Test
     void getLatestReport_success() {
         // Given
-        LocalDateTime periodEnd = LocalDateTime.of(2024, 1, 31, 23, 59);
+        LocalDate periodEnd = LocalDate.of(2024, 1, 31);
         AnalysisReportRequest request = new AnalysisReportRequest("user123", periodEnd);
         
         AnalysisReport mockReport = mock(AnalysisReport.class);
@@ -142,7 +143,7 @@ class AnalysisUseCaseTest {
     @Test
     void getLatestReport_fail_no_report() {
         // Given
-        LocalDateTime periodEnd = LocalDateTime.of(2024, 1, 31, 23, 59);
+        LocalDate periodEnd = LocalDate.of(2024, 1, 31);
         AnalysisReportRequest request = new AnalysisReportRequest("user123", periodEnd);
         
         when(analysisService.findLatestReport("user123", periodEnd))
@@ -161,7 +162,7 @@ class AnalysisUseCaseTest {
     @Test
     void getLatestReport_with_valid_data_structure() {
         // Given
-        LocalDateTime periodEnd = LocalDateTime.of(2024, 1, 31, 23, 59);
+        LocalDate periodEnd = LocalDate.of(2024, 1, 31);
         AnalysisReportRequest request = new AnalysisReportRequest("user123", periodEnd);
         LocalDateTime createdAt = LocalDateTime.of(2024, 1, 30, 15, 0);
         
@@ -178,7 +179,7 @@ class AnalysisUseCaseTest {
         // Then
         assertThat(result.reportId()).isEqualTo("report123");
         assertThat(result.userId()).isEqualTo("user123");
-        assertThat(result.createdAt()).isEqualTo(createdAt);
+        assertThat(result.createdAt()).isEqualTo(createdAt.toLocalDate());
         assertThat(result.report()).isEqualTo("상세 분석 리포트 내용");
         
         // AnalysisReportResponse의 모든 필드가 올바르게 매핑되었는지 확인

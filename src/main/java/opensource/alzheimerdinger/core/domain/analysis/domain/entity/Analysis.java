@@ -24,13 +24,13 @@ public class Analysis extends BaseEntity {
     private String transcriptId;
 
     @Column(nullable = false)
-    private float riskScore;
+    private double riskScore;
 
-    @Column(nullable = false) private float happy;
-    @Column(nullable = false) private float sad;
-    @Column(nullable = false) private float angry;
-    @Column(nullable = false) private float surprised;
-    @Column(nullable = false) private float bored;
+    @Column(nullable = false) private double happy;
+    @Column(nullable = false) private double sad;
+    @Column(nullable = false) private double angry;
+    @Column(nullable = false) private double surprised;
+    @Column(nullable = false) private double bored;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
