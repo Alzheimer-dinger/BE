@@ -64,6 +64,10 @@ public class SecurityConfig {
                         "/swagger-ui.html",
                         "/webjars/**"
                 ).permitAll()
+                .requestMatchers(
+                        "/actuator/**",
+                        "/favicon.ico"
+                ).permitAll()
                 .requestMatchers(HttpMethod.POST, "/users/token").hasRole("USER") // 토큰 재발급
                 // Authenticated
                 .anyRequest().authenticated()

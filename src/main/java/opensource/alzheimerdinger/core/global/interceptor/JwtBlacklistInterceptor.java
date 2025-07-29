@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.domain.user.domain.service.TokenBlacklistService;
 import opensource.alzheimerdinger.core.global.exception.RestApiException;
 import opensource.alzheimerdinger.core.global.security.TokenProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -16,20 +18,24 @@ import static opensource.alzheimerdinger.core.global.exception.code.status.AuthE
 @RequiredArgsConstructor
 public class JwtBlacklistInterceptor implements HandlerInterceptor {
 
+    private static final Logger log = LoggerFactory.getLogger(JwtBlacklistInterceptor.class);
     private final TokenProvider tokenProvider;
     private final TokenBlacklistService tokenBlacklistService;
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-        // 유저 정보 조회
-        String token = tokenProvider.getToken(request)
-                .orElseThrow(() -> new RestApiException(EMPTY_JWT));
+    public boolean preHandle(HttpServletRequest req, HttpServletResponse res, Object handler) {
+        log.debug("[JwtBlacklistInterceptor] incoming request: {} {}", req.getMethod(), req.getRequestURI());
+        String token = tokenProvider.getToken(req)
+                .orElseThrow(() -> {
+                    log.warn("[JwtBlacklistInterceptor] no token found");
+                    return new RestApiException(EMPTY_JWT);
+                });
 
-        // 블랙리스트 검사
-        if (tokenBlacklistService.isBlacklistToken(token)) {
+        boolean isBlack = tokenBlacklistService.isBlacklistToken(token);
+        log.info("[JwtBlacklistInterceptor] token={} blacklisted={}", token, isBlack);
+        if (isBlack) {
             throw new RestApiException(EXPIRED_MEMBER_JWT);
         }
-
         return true;
     }
 }

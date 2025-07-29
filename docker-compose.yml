@@ -1,0 +1,94 @@
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.1
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    ports:
+      - "2181:2181"
+    networks:
+      - monitoring-net
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.1
+    depends_on: [zookeeper]
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    ports:
+      - "9092:9092"
+    networks:
+      - monitoring-net
+
+  mongo:
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
+    networks:
+      - monitoring-net
+
+  redis:
+    image: redis:7.0
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - monitoring-net
+
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:latest
+    environment:
+      KAFKA_SERVER: "kafka:9092"
+    ports:
+      - "9308:9308"
+    networks:
+      - monitoring-net
+
+  mongodb-exporter:
+    image: bitnami/mongodb-exporter:latest
+    environment:
+      MONGODB_URI: "mongodb://picus:<YOUR_PASSWORD>@mongo:27017/yourDatabase?authSource=admin"
+    ports:
+      - "9216:9216"
+    networks:
+      - monitoring-net
+
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    command: ["--redis.addr", "redis:6379"]
+    ports:
+      - "9121:9121"
+    networks:
+      - monitoring-net
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring-net
+
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - monitoring-net
+
+volumes:
+  redis-data:
+  grafana-storage:
+
+networks:
+  monitoring-net:
+    driver: bridge

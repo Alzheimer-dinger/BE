@@ -32,6 +32,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-batch'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
     // Kafka
     implementation 'org.springframework.kafka:spring-kafka'
@@ -56,8 +57,15 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.2'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.2'
 
+    // Micrometer
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+
     // Swagger
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8'
+
+    // JANSI
+    implementation 'org.fusesource.jansi:jansi:2.4.0'
+    runtimeOnly 'org.fusesource.jansi:jansi:2.4.0'
 
     // TSID
     implementation 'io.hypersistence:hypersistence-utils-hibernate-63:3.7.0'
