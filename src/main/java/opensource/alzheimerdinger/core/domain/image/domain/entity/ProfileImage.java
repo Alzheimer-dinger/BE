@@ -2,14 +2,12 @@ package opensource.alzheimerdinger.core.domain.image.domain.entity;
 
 
 import io.hypersistence.utils.hibernate.id.Tsid;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import opensource.alzheimerdinger.core.domain.user.domain.entity.User;
 import opensource.alzheimerdinger.core.global.common.BaseEntity;
 
 @Entity
@@ -24,13 +22,14 @@ public class ProfileImage extends BaseEntity {
     @Tsid
     private String imageId;
 
-    @Column(nullable = false, unique = true)
-    private String userId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    private User user;
 
     @Column(nullable = false)
-    private String imageUrl;
+    private String fileKey;
 
-    public void updateImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public void updateFileKey(String fileKey) {
+        this.fileKey = fileKey;
     }
 }

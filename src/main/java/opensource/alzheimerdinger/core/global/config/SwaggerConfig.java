@@ -12,25 +12,28 @@ import org.springframework.context.annotation.Configuration;
 public class SwaggerConfig {
     @Bean
     public OpenAPI openAPI() {
-        String jwt = "JWT";
-        SecurityRequirement securityRequirement = new SecurityRequirement().addList(jwt);
-        Components components = new Components().addSecuritySchemes(jwt, new SecurityScheme()
-                .name(jwt)
-                .type(SecurityScheme.Type.HTTP)
-                .scheme("bearer")
-                .bearerFormat("JWT")
-        );
-        return new OpenAPI()
-                .components(new Components())
-                .info(apiInfo())
-                .addSecurityItem(securityRequirement)
-                .components(components);
-    }
+        String schemeName = "Bearer Authentication";
 
-    private Info apiInfo() {
-        return new Info()
-                .title("API Test")
-                .description("API에 대한 설명")
-                .version("1.0.0");
+        // 1) SecurityScheme 정의
+        Components components = new Components()
+                .addSecuritySchemes(schemeName,
+                        new SecurityScheme()
+                                .type(SecurityScheme.Type.HTTP)
+                                .scheme("bearer")
+                                .bearerFormat("JWT")
+                );
+
+        // 2) 전역 SecurityRequirement 추가
+        SecurityRequirement requirement = new SecurityRequirement()
+                .addList(schemeName);
+
+        return new OpenAPI()
+                .components(components)
+                .addSecurityItem(requirement)
+                .info(new Info()
+                        .title("알츠하이머딩거 API")
+                        .description("API 문서")
+                        .version("1.0.0")
+                );
     }
 }

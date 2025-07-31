@@ -1,6 +1,9 @@
 package opensource.alzheimerdinger.core.domain.image.ui;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import opensource.alzheimerdinger.core.domain.image.application.dto.request.UpdateProfileImageRequest;
+import opensource.alzheimerdinger.core.domain.image.application.dto.response.UploadUrlResponse;
 import opensource.alzheimerdinger.core.domain.image.application.usecase.ImageUploadUseCase;
 import opensource.alzheimerdinger.core.domain.user.application.dto.response.ProfileResponse;
 import opensource.alzheimerdinger.core.global.annotation.CurrentUser;
@@ -13,13 +16,21 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/images")
 public class ImageController {
 
-    private final ImageUploadUseCase imageUploadUseCase;
+    private final ImageUploadUseCase useCase;
 
-    @PostMapping(
-            value = "/profile/image",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-    )
-    public ProfileResponse uploadImage(@CurrentUser String userId, @RequestPart("file") MultipartFile file) {
-        return imageUploadUseCase.uploadProfileImage(userId, file);
+    @GetMapping("/profile/upload-url")
+    public UploadUrlResponse requestPostUrl(
+            @CurrentUser String userId,
+            @RequestParam String extension
+    ) {
+        return useCase.requestPostUrl(userId, extension);
+    }
+
+    @PostMapping("/profile")
+    public ProfileResponse updateImage(
+            @CurrentUser String userId,
+            @RequestBody @Valid UpdateProfileImageRequest req
+    ) {
+        return useCase.updateImage(userId, req.fileKey());
     }
 }

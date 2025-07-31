@@ -4,10 +4,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface StorageService {
     /**
-     * @param file       업로드할 파일
-     * @param objectName 버킷 내 저장 경로
-     * @return 외부에서 접근 가능한 URL
+     * presigned PUT URL 생성
      */
-    String upload(MultipartFile file, String objectName);
-    void delete(String objectName);
+    String generateUploadUrl(String objectName);
+
+    /**
+     * public 버킷인 경우 파일에 접근할 수 있는 URL
+     */
+    String getPublicUrl(String objectName);
 }
