@@ -1,19 +1,13 @@
 package opensource.alzheimerdinger.core.domain.image.infra.storage;
 
-import com.google.api.gax.paging.Page;
 import com.google.cloud.storage.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import opensource.alzheimerdinger.core.global.exception.RestApiException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
-
-import static opensource.alzheimerdinger.core.global.exception.code.status.GlobalErrorStatus.*;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +23,7 @@ public class GcsStorageService implements StorageService {
         BlobInfo blobInfo = BlobInfo.newBuilder(bucketName, objectName).build();
         URL url = storage.signUrl(
                 blobInfo,
-                15, TimeUnit.MINUTES,
+                30, TimeUnit.MINUTES,
                 Storage.SignUrlOption.httpMethod(HttpMethod.PUT),
                 Storage.SignUrlOption.withV4Signature()
         );

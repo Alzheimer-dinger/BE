@@ -1,6 +1,5 @@
 package opensource.alzheimerdinger.core.domain.image.infra.storage;
 
-import org.springframework.web.multipart.MultipartFile;
 
 public interface StorageService {
     /**

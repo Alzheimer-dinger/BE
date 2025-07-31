@@ -1,20 +1,15 @@
 package opensource.alzheimerdinger.core.domain.image.domain.service;
 
 import lombok.RequiredArgsConstructor;
-import opensource.alzheimerdinger.core.domain.image.application.dto.response.UploadUrlResponse;
 import opensource.alzheimerdinger.core.domain.image.domain.entity.ProfileImage;
 import opensource.alzheimerdinger.core.domain.image.domain.repository.ProfileImageRepository;
 import opensource.alzheimerdinger.core.domain.image.infra.storage.StorageService;
 import opensource.alzheimerdinger.core.domain.user.domain.entity.User;
 import opensource.alzheimerdinger.core.domain.user.domain.repository.UserRepository;
 import opensource.alzheimerdinger.core.global.exception.RestApiException;
-import org.apache.commons.io.FilenameUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -31,15 +26,17 @@ public class ImageService {
     @Value("${gcp.storage.default-profile-url}")
     private String defaultProfileUrl;
 
+    /**
+     * presigned URL만 반환
+     */
     @Transactional(readOnly = true)
-    public UploadUrlResponse requestUploadUrl(String userId, String extension) {
+    public String requestUploadUrl(String userId, String extension) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RestApiException(_NOT_FOUND));
 
         String fileKey = String.format("images/%s/%s.%s",
                 userId, UUID.randomUUID(), extension);
-        String uploadUrl = storageService.generateUploadUrl(fileKey);
-        return new UploadUrlResponse(fileKey, uploadUrl);
+        return storageService.generateUploadUrl(fileKey);
     }
 
     @Transactional
