@@ -21,29 +21,26 @@ public class ImageService {
 
     private final ProfileImageRepository imageRepo;
     private final StorageService storageService;
-    private final UserRepository userRepository;
 
     @Value("${gcp.storage.default-profile-url}")
     private String defaultProfileUrl;
 
     /**
-     * presigned URL만 반환
+     * presigned URL 반환; User 엔티티는 UseCase에서 조회
      */
     @Transactional(readOnly = true)
-    public String requestUploadUrl(String userId, String extension) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RestApiException(_NOT_FOUND));
-
+    public String requestUploadUrl(User user, String extension) {
         String fileKey = String.format("images/%s/%s.%s",
-                userId, UUID.randomUUID(), extension);
+                user.getUserId(), java.util.UUID.randomUUID(), extension);
         return storageService.generateUploadUrl(fileKey);
     }
 
-    @Transactional
-    public String updateProfileImage(String userId, String fileKey) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RestApiException(_NOT_FOUND));
 
+    /**
+     * fileKey 저장 및 public URL 반환
+     */
+    @Transactional
+    public String updateProfileImage(User user, String fileKey) {
         imageRepo.findByUser(user).ifPresentOrElse(existing -> {
             existing.updateFileKey(fileKey);
         }, () -> {
@@ -53,15 +50,14 @@ public class ImageService {
                     .build();
             imageRepo.save(img);
         });
-
         return storageService.getPublicUrl(fileKey);
     }
 
+    /**
+     * 저장된 fileKey → public URL 또는 default URL 반환
+     */
     @Transactional(readOnly = true)
-    public String getProfileImageUrl(String userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RestApiException(_NOT_FOUND));
-
+    public String getProfileImageUrl(User user) {
         return imageRepo.findByUser(user)
                 .map(ProfileImage::getFileKey)
                 .map(storageService::getPublicUrl)

@@ -13,22 +13,15 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RequestMapping("/api/images")
 public class ImageController {
-
     private final ImageUploadUseCase useCase;
 
     @GetMapping("/profile/upload-url")
-    public UploadUrlResponse requestPostUrl(
-            @CurrentUser String userId,
-            @RequestParam String extension
-    ) {
+    public UploadUrlResponse requestPostUrl(@CurrentUser String userId, @RequestParam String extension) {
         return useCase.requestPostUrl(userId, extension);
     }
 
     @PostMapping("/profile")
-    public ProfileResponse updateImage(
-            @CurrentUser String userId,
-            @RequestBody @Valid UpdateProfileImageRequest req
-    ) {
+    public ProfileResponse updateImage(@CurrentUser String userId, @RequestBody @Valid UpdateProfileImageRequest req) {
         return useCase.updateImage(userId, req.fileKey());
     }
 }
