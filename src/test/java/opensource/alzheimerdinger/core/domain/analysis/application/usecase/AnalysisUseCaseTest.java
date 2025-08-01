@@ -1,7 +1,5 @@
 package opensource.alzheimerdinger.core.domain.analysis.application.usecase;
 
-import opensource.alzheimerdinger.core.domain.analysis.application.dto.request.AnalysisRequest;
-import opensource.alzheimerdinger.core.domain.analysis.application.dto.request.AnalysisReportRequest;
 import opensource.alzheimerdinger.core.domain.analysis.application.dto.response.AnalysisResponse;
 import opensource.alzheimerdinger.core.domain.analysis.application.dto.response.AnalysisDayResponse;
 import opensource.alzheimerdinger.core.domain.analysis.application.dto.response.AnalysisReportResponse;
@@ -35,39 +33,39 @@ class AnalysisUseCaseTest {
     @Test
     void getAnalysisPeriodData_success() {
         // Given
+        String userId = "user123";
         LocalDate start = LocalDate.of(2024, 1, 1);
         LocalDate end = LocalDate.of(2024, 1, 31);
-        AnalysisRequest request = new AnalysisRequest("user123", start, end);
         
         AnalysisResponse expectedResponse = new AnalysisResponse(
-                "user123", start, end, 0.3,
+                userId, start, end, 0.3,
                 List.of(), 5, "10분 30초"
         );
         
-        when(analysisService.getPeriodData("user123", start, end)).thenReturn(expectedResponse);
+        when(analysisService.getPeriodData(userId, start, end)).thenReturn(expectedResponse);
 
         // When
-        AnalysisResponse result = analysisUseCase.getAnalysisPeriodData(request);
+        AnalysisResponse result = analysisUseCase.getAnalysisPeriodData(userId, start, end);
 
         // Then
         assertThat(result).isEqualTo(expectedResponse);
-        assertThat(result.userId()).isEqualTo("user123");
+        assertThat(result.userId()).isEqualTo(userId);
         assertThat(result.averageRiskScore()).isEqualTo(0.3);
-        verify(analysisService).getPeriodData("user123", start, end);
+        verify(analysisService).getPeriodData(userId, start, end);
     }
 
     @Test
     void getAnalysisPeriodData_fail_no_data() {
         // Given
+        String userId = "user123";
         LocalDate start = LocalDate.of(2024, 1, 1);
         LocalDate end = LocalDate.of(2024, 1, 31);
-        AnalysisRequest request = new AnalysisRequest("user123", start, end);
         
-        when(analysisService.getPeriodData("user123", start, end))
+        when(analysisService.getPeriodData(userId, start, end))
                 .thenThrow(new RestApiException(_NOT_FOUND));
 
         // When
-        Throwable thrown = catchThrowable(() -> analysisUseCase.getAnalysisPeriodData(request));
+        Throwable thrown = catchThrowable(() -> analysisUseCase.getAnalysisPeriodData(userId, start, end));
 
         // Then
         assertThat(thrown)
@@ -120,37 +118,37 @@ class AnalysisUseCaseTest {
     @Test
     void getLatestReport_success() {
         // Given
+        String userId = "user123";
         LocalDate periodEnd = LocalDate.of(2024, 1, 31);
-        AnalysisReportRequest request = new AnalysisReportRequest("user123", periodEnd);
         
         AnalysisReport mockReport = mock(AnalysisReport.class);
         when(mockReport.getAnalysisReportId()).thenReturn("report123");
         when(mockReport.getCreatedAt()).thenReturn(LocalDateTime.of(2024, 1, 30, 15, 0));
         when(mockReport.getReport()).thenReturn("1월 종합 분석 결과입니다.");
         
-        when(analysisService.findLatestReport("user123", periodEnd)).thenReturn(mockReport);
+        when(analysisService.findLatestReport(userId, periodEnd)).thenReturn(mockReport);
 
         // When
-        AnalysisReportResponse result = analysisUseCase.getLatestReport(request);
+        AnalysisReportResponse result = analysisUseCase.getLatestReport(userId, periodEnd);
 
         // Then
         assertThat(result.reportId()).isEqualTo("report123");
-        assertThat(result.userId()).isEqualTo("user123");
+        assertThat(result.userId()).isEqualTo(userId);
         assertThat(result.report()).isEqualTo("1월 종합 분석 결과입니다.");
-        verify(analysisService).findLatestReport("user123", periodEnd);
+        verify(analysisService).findLatestReport(userId, periodEnd);
     }
 
     @Test
     void getLatestReport_fail_no_report() {
         // Given
+        String userId = "user123";
         LocalDate periodEnd = LocalDate.of(2024, 1, 31);
-        AnalysisReportRequest request = new AnalysisReportRequest("user123", periodEnd);
         
-        when(analysisService.findLatestReport("user123", periodEnd))
+        when(analysisService.findLatestReport(userId, periodEnd))
                 .thenThrow(new RestApiException(_NOT_FOUND));
 
         // When
-        Throwable thrown = catchThrowable(() -> analysisUseCase.getLatestReport(request));
+        Throwable thrown = catchThrowable(() -> analysisUseCase.getLatestReport(userId, periodEnd));
 
         // Then
         assertThat(thrown)
@@ -162,8 +160,8 @@ class AnalysisUseCaseTest {
     @Test
     void getLatestReport_with_valid_data_structure() {
         // Given
+        String userId = "user123";
         LocalDate periodEnd = LocalDate.of(2024, 1, 31);
-        AnalysisReportRequest request = new AnalysisReportRequest("user123", periodEnd);
         LocalDateTime createdAt = LocalDateTime.of(2024, 1, 30, 15, 0);
         
         AnalysisReport mockReport = mock(AnalysisReport.class);
@@ -171,14 +169,14 @@ class AnalysisUseCaseTest {
         when(mockReport.getCreatedAt()).thenReturn(createdAt);
         when(mockReport.getReport()).thenReturn("상세 분석 리포트 내용");
         
-        when(analysisService.findLatestReport("user123", periodEnd)).thenReturn(mockReport);
+        when(analysisService.findLatestReport(userId, periodEnd)).thenReturn(mockReport);
 
         // When
-        AnalysisReportResponse result = analysisUseCase.getLatestReport(request);
+        AnalysisReportResponse result = analysisUseCase.getLatestReport(userId, periodEnd);
 
         // Then
         assertThat(result.reportId()).isEqualTo("report123");
-        assertThat(result.userId()).isEqualTo("user123");
+        assertThat(result.userId()).isEqualTo(userId);
         assertThat(result.createdAt()).isEqualTo(createdAt.toLocalDate());
         assertThat(result.report()).isEqualTo("상세 분석 리포트 내용");
         
