@@ -1,0 +1,83 @@
+name: CD Pipeline
+
+on:
+  push:
+    branches: [ develop ]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & Push Docker Image
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/your-app:${{ github.sha }} .
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/your-app:${{ github.sha }}
+          docker tag ${{ secrets.DOCKERHUB_USERNAME }}/your-app:${{ github.sha }} \
+                     ${{ secrets.DOCKERHUB_USERNAME }}/your-app:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/your-app:latest
+
+  deploy:
+    needs: build-and-push
+    runs-on: self-hosted
+
+    env:
+      MONGO_INITDB_ROOT_USERNAME: ${{ secrets.MONGO_INITDB_ROOT_USERNAME }}
+      MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}
+      MONGO_DATABASE:             ${{ secrets.MONGO_DATABASE }}
+      MYSQL_ROOT_PASSWORD:        ${{ secrets.MYSQL_ROOT_PASSWORD }}
+      MYSQL_DATABASE:             ${{ secrets.MYSQL_DATABASE }}
+      MYSQL_USERNAME:             ${{ secrets.MYSQL_USERNAME }}
+      MYSQL_PASSWORD:             ${{ secrets.MYSQL_PASSWORD }}
+      REDIS_PASSWORD:             ${{ secrets.REDIS_PASSWORD }}
+      GRAFANA_ADMIN_USER:         ${{ secrets.GRAFANA_ADMIN_USER }}
+      GRAFANA_ADMIN_PASSWORD:     ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
+      KAFKA_BOOTSTRAP_SERVERS:    kafka:9092
+      GCP_SA_KEY_JSON:            ${{ secrets.GCP_SA_KEY_JSON }}
+      DOCKERHUB_USERNAME:         ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN:            ${{ secrets.DOCKERHUB_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Generate runtime config files
+        run: |
+          # .env 한 번에 출력
+          cat <<EOF > .env
+          MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+          MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+          MONGO_DATABASE=${MONGO_DATABASE}
+
+          MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+          MYSQL_DATABASE=${MYSQL_DATABASE}
+          MYSQL_USERNAME=${MYSQL_USERNAME}
+          MYSQL_PASSWORD=${MYSQL_PASSWORD}
+
+          REDIS_PASSWORD=${REDIS_PASSWORD}
+
+          GRAFANA_ADMIN_USER=${GRAFANA_ADMIN_USER}
+          GRAFANA_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+
+          KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
+          EOF
+
+          # GCP 키 복원
+          mkdir -p secret
+          echo "${GCP_SA_KEY_JSON}" > secret/alzheimerdinger.json
+
+      - name: Log in to Docker Hub
+        run: echo "${DOCKERHUB_TOKEN}" \
+              | docker login -u "${DOCKERHUB_USERNAME}" \
+                             --password-stdin
+
+      - name: Deploy with Docker Compose
+        run: |
+          docker-compose pull springboot
+          docker-compose up -d --remove-orphans
