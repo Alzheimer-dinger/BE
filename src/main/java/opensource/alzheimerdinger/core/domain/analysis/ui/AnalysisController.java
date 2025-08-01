@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.domain.analysis.application.dto.response.AnalysisResponse;
 import opensource.alzheimerdinger.core.domain.analysis.application.dto.response.AnalysisDayResponse;
@@ -45,8 +46,8 @@ public class AnalysisController {
     @GetMapping("/period")
     public BaseResponse<AnalysisResponse> getAnalysisByPeriod(
             @CurrentUser String userId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @NotNull LocalDate start,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @NotNull LocalDate end) {
         return BaseResponse.onSuccess(analysisUseCase.getAnalysisPeriodData(userId, start, end));
     }
 
@@ -68,7 +69,7 @@ public class AnalysisController {
     @GetMapping("/day")
     public BaseResponse<AnalysisDayResponse> getDayAnalysis(
             @CurrentUser String userId, 
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @NotNull LocalDate date) {
         return BaseResponse.onSuccess(analysisUseCase.getAnalysisDayData(userId, date));
     }
 
@@ -90,7 +91,7 @@ public class AnalysisController {
     @GetMapping("/report/latest")
     public BaseResponse<AnalysisReportResponse> getLatestReport(
             @CurrentUser String userId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate periodEnd) {
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @NotNull LocalDate periodEnd) {
         return BaseResponse.onSuccess(analysisUseCase.getLatestReport(userId, periodEnd));
     }
 }
