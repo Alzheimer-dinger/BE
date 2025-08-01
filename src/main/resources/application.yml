@@ -1,19 +1,21 @@
 spring:
   datasource:
-    username: ${USERNAME}
-    url: ${URL}
-    password: ${password}
+    username: ${MYSQL_USERNAME}
+    url: ${SPRING_DATASOURCE_URL}
+    password: ${MYSQL_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${SPRING_DATA_REDIS_HOST}
+      port: ${SPRING_DATA_REDIS_PORT}
+      username: ${REDIS_USERNAME}
+      password: ${REDIS_PASSWORD}
     mongodb:
-      host: localhost
-      port: 27017
-      database: picus
-      username: picus
-      password: picus
+      host: ${SPRING_DATA_MONGODB_HOST}
+      port: ${SPRING_DATA_MONGODB_PORT}
+      database: ${MONGO_DATABASE}
+      username: ${MONGO_INITDB_ROOT_USERNAME}
+      password: ${MONGO_INITDB_ROOT_PASSWORD}
       authentication-database: admin
 
   jpa:
@@ -66,7 +68,7 @@ gcp:
     bucket-name: alzheimerdinger-bucket
     default-profile-url: https://storage.googleapis.com/alzheimerdinger-bucket/image/default-profile.png
   credentials:
-    file: classpath:secret/alzheimerdinger-b9e53-9483d3e5bc94.json
+    file: file:/app/secret/alzheimerdinger.json
   project-id: alzheimerdinger-b9e53
 
 exclude-auth-path-patterns:

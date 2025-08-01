@@ -12,7 +12,7 @@ scrape_configs:
   - job_name: "springboot-app"
     metrics_path: /actuator/prometheus
     static_configs:
-      - targets: ["host.docker.internal:8080"] # 호스트의 Spring Boot 앱으로 실행 테스트
+      - targets: ["springboot:8080"] # "host.docker.internal:8080" -> 호스트에서 테스트
 
   # Kafka Exporter
   - job_name: "kafka-exporter"
