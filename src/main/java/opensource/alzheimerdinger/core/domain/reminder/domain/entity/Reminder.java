@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import opensource.alzheimerdinger.core.domain.user.domain.entity.User;
 import opensource.alzheimerdinger.core.global.common.BaseEntity;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Getter
@@ -28,6 +29,8 @@ public class Reminder extends BaseEntity {
 
     private LocalTime fireTime;
 
+    private LocalDate lastSent;
+
     private ReminderStatus status;
 
     public void update(LocalTime fireTime, ReminderStatus status) {
@@ -37,6 +40,10 @@ public class Reminder extends BaseEntity {
 
     public void updateStatus(ReminderStatus status) {
         this.status = status;
+    }
+
+    public void updateLastSent(LocalDate lastSent) {
+        this.lastSent = lastSent;
     }
 
     @PrePersist
