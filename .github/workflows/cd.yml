@@ -35,58 +35,45 @@ jobs:
 
   deploy:
     needs: build-and-push
-    runs-on: self-hosted
-
-    env:
-      MONGO_INITDB_ROOT_USERNAME: ${{ secrets.MONGO_INITDB_ROOT_USERNAME }}
-      MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}
-      MONGO_DATABASE:             ${{ secrets.MONGO_DATABASE }}
-      MYSQL_ROOT_PASSWORD:        ${{ secrets.MYSQL_ROOT_PASSWORD }}
-      MYSQL_DATABASE:             ${{ secrets.MYSQL_DATABASE }}
-      MYSQL_USERNAME:             ${{ secrets.MYSQL_USERNAME }}
-      MYSQL_PASSWORD:             ${{ secrets.MYSQL_PASSWORD }}
-      REDIS_PASSWORD:             ${{ secrets.REDIS_PASSWORD }}
-      GRAFANA_ADMIN_USER:         ${{ secrets.GRAFANA_ADMIN_USER }}
-      GRAFANA_ADMIN_PASSWORD:     ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
-      KAFKA_BOOTSTRAP_SERVERS:    kafka:9092
-      GCP_SA_KEY_JSON:            ${{ secrets.GCP_SA_KEY_JSON }}
-      DOCKERHUB_USERNAME:         ${{ secrets.DOCKERHUB_USERNAME }}
-      DOCKERHUB_TOKEN:            ${{ secrets.DOCKERHUB_TOKEN }}
+    runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Deploy to GCE via SSH
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.VM_SSH_HOST }}
+          username: ${{ secrets.VM_SSH_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          port: 22
+          script: |
+            # 1) 작업 디렉터리(프로젝트 폴더)로 이동
+            cd /opt/your-app
 
-      - name: Generate runtime config files
-        run: |
-          # .env 한 번에 출력
-          cat <<EOF > .env
-          MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
-          MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
-          MONGO_DATABASE=${MONGO_DATABASE}
+            # 2) runtime 설정 파일(.env) 생성
+            cat <<EOF > .env
+            MONGO_INITDB_ROOT_USERNAME=${{ secrets.MONGO_INITDB_ROOT_USERNAME }}
+            MONGO_INITDB_ROOT_PASSWORD=${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}
+            MONGO_DATABASE=${{ secrets.MONGO_DATABASE }}
 
-          MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-          MYSQL_DATABASE=${MYSQL_DATABASE}
-          MYSQL_USERNAME=${MYSQL_USERNAME}
-          MYSQL_PASSWORD=${MYSQL_PASSWORD}
+            MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}
+            MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}
+            MYSQL_USERNAME=${{ secrets.MYSQL_USERNAME }}
+            MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
 
-          REDIS_PASSWORD=${REDIS_PASSWORD}
+            REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
 
-          GRAFANA_ADMIN_USER=${GRAFANA_ADMIN_USER}
-          GRAFANA_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+            GRAFANA_ADMIN_USER=${{ secrets.GRAFANA_ADMIN_USER }}
+            GRAFANA_ADMIN_PASSWORD=${{ secrets.GRAFANA_ADMIN_PASSWORD }}
 
-          KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
-          EOF
+            KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+            EOF
 
-          # GCP 키 복원
-          mkdir -p secret
-          echo "${GCP_SA_KEY_JSON}" > secret/alzheimerdinger.json
+            # 3) GCP 키 파일 복원
+            mkdir -p secret
+            cat <<EOF > secret/alzheimerdinger.json
+            ${{ secrets.GCP_SA_KEY_JSON }}
+            EOF
 
-      - name: Log in to Docker Hub
-        run: echo "${DOCKERHUB_TOKEN}" \
-              | docker login -u "${DOCKERHUB_USERNAME}" \
-                             --password-stdin
-
-      - name: Deploy with Docker Compose
-        run: |
-          docker-compose pull springboot
-          docker-compose up -d --remove-orphans
+            # 4) Docker Compose로 최신 이미지 내려받아 재시작
+            docker-compose pull springboot
+            docker-compose up -d --remove-orphans
