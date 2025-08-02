@@ -46,7 +46,7 @@ jobs:
           key: ${{ secrets.VM_SSH_KEY }}
           port: 22
           script: |
-            # 1) 작업 디렉터리(프로젝트 폴더)로 이동
+            # 1) 작업 디렉터리로 이동
             cd /opt/your-app
 
             # 2) runtime 설정 파일(.env) 생성
@@ -71,7 +71,7 @@ jobs:
             # 3) GCP 키 파일 복원
             mkdir -p secret
             cat <<EOF > secret/alzheimerdinger.json
-            ${{ secrets.GCP_SA_KEY_JSON }}
+            ${{ secrets.GCP_SA_KEY }}
             EOF
 
             # 4) Docker Compose로 최신 이미지 내려받아 재시작
