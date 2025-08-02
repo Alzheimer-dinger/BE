@@ -46,11 +46,18 @@ jobs:
           key: ${{ secrets.VM_SSH_KEY }}
           port: 22
           script: |
-            # 테스트용 커밋
-            # 1) 작업 디렉터리로 이동
+            # repo clone / pull
+            if [ ! -d /opt/your-app ]; then
+              git clone https://github.com/YourOrg/YourRepo.git /opt/your-app
+            else
+              cd /opt/your-app
+              git pull origin develop
+            fi
+            
+            # 작업 디렉토리 이동
             cd /opt/your-app
 
-            # 2) runtime 설정 파일(.env) 생성
+            # .env 생성
             cat <<EOF > .env
             MONGO_INITDB_ROOT_USERNAME=${{ secrets.MONGO_INITDB_ROOT_USERNAME }}
             MONGO_INITDB_ROOT_PASSWORD=${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}
@@ -69,12 +76,12 @@ jobs:
             KAFKA_BOOTSTRAP_SERVERS=kafka:9092
             EOF
 
-            # 3) GCP 키 파일 복원
+            # 3) GCP 키 복원 (GCS)
             mkdir -p secret
             cat <<EOF > secret/alzheimerdinger.json
             ${{ secrets.GCP_SA_KEY }}
             EOF
 
-            # 4) Docker Compose로 최신 이미지 내려받아 재시작
+            # 4) Docker Compose로 배포
             docker-compose pull springboot
             docker-compose up -d --remove-orphans
