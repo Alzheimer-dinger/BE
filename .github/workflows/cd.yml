@@ -46,6 +46,7 @@ jobs:
           key: ${{ secrets.VM_SSH_KEY }}
           port: 22
           script: |
+            # 테스트용 커밋
             # 1) 작업 디렉터리로 이동
             cd /opt/your-app
 
