@@ -70,6 +70,7 @@ jobs:
             MYSQL_USERNAME=${{ secrets.MYSQL_USERNAME }}
             MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
 
+            REDIS_USERNAME=${{ secrets.REDIS_USERNAME }}
             REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
 
             GRAFANA_ADMIN_USER=${{ secrets.GRAFANA_ADMIN_USER }}
