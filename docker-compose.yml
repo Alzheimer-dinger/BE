@@ -33,6 +33,10 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     ports:
       - "9092:9092"
+    healthcheck:
+      test: [ "CMD", "bash", "-c", "echo > /dev/tcp/localhost/9092" ]
+      interval: 10s
+      retries: 5
     networks:
       - monitoring-net
 
@@ -90,6 +94,9 @@ services:
       KAFKA_SERVER: "kafka:9092"
     ports:
       - "9308:9308"
+    depends_on:
+      kafka:
+        condition: service_healthy
     networks:
       - monitoring-net
 
