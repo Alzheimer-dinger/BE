@@ -2,7 +2,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ feature/OPS-39 ]
 
 jobs:
   build-and-push:
