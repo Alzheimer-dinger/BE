@@ -75,7 +75,7 @@ class UserAuthUseCaseTest {
 
     @Test
     void login_success() {
-        LoginRequest req = new LoginRequest("이메일", "비밀번호");
+        LoginRequest req = new LoginRequest("이메일", "비밀번호", "토큰");
         User u = mock(User.class);
         when(userService.findByEmail(req.email())).thenReturn(u);
         when(u.getPassword()).thenReturn("암호화된_비밀번호");
@@ -96,7 +96,7 @@ class UserAuthUseCaseTest {
 
     @Test
     void login_fail_bad_password() {
-        LoginRequest req = new LoginRequest("이메일", "틀린_비밀번호");
+        LoginRequest req = new LoginRequest("이메일", "틀린_비밀번호", "토큰");
         User u = mock(User.class);
         when(userService.findByEmail(req.email())).thenReturn(u);
         when(u.getPassword()).thenReturn("암호화된_비밀번호");

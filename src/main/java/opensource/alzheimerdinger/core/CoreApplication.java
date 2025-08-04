@@ -3,6 +3,7 @@ package opensource.alzheimerdinger.core;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
 import opensource.alzheimerdinger.core.global.config.properties.CorsProperties;
+import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
@@ -22,6 +23,7 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 })
 @SpringBootApplication
 @ConfigurationPropertiesScan
+@EnableBatchProcessing
 @EnableJpaAuditing
 @EnableMongoRepositories
 public class CoreApplication {

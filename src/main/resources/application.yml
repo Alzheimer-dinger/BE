@@ -20,20 +20,19 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     database: mysql
     database-platform: org.hibernate.dialect.MySQL8Dialect
     open-in-view: false
 
   batch:
     job:
-      enabled: false
+      enabled: true
     jdbc:
       initialize-schema: always
       table-prefix: BATCH_
-    execution:
       isolation-level-for-create: SERIALIZABLE
-      
+
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
 
@@ -54,6 +53,12 @@ jwt:
   key: fdsafdsafdsafdsafdsafdsafdsafdsafdsafdsafda
   access:
     expiration: 360000
+  refresh:
+    expiration: 360000
+
+fcm:
+  firebase_config_path: alzheimerdinger-b9e53-firebase-adminsdk-fbsvc-a52d1783df.json
+  prefix: firebase/
 
 springdoc:
   swagger-ui:
@@ -121,6 +126,8 @@ logging:
     org.springframework.security: DEBUG
     org.apache.kafka: WARN
     org.springframework.kafka: INFO
+    org.springframework.batch.core: DEBUG
+    org.springframework.jdbc.core: DEBUG
 
 CORS:
   allowed-origins: "*"

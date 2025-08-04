@@ -13,10 +13,10 @@ public interface RelationRepository extends JpaRepository<Relation, String> {
 
     @Query("""
         SELECT new opensource.alzheimerdinger.core.domain.relation.application.dto.response.RelationResponse(
-            CASE WHEN :userNo = patient.userId THEN guardian.userId ELSE patient.userId END,
-            CASE WHEN :userNo = patient.userId THEN guardian.name ELSE patient.name END,
-            CASE WHEN :userNo = patient.userId THEN guardian.patientCode ELSE patient.patientCode END,
-            CASE WHEN :userNo = patient.userId THEN opensource.alzheimerdinger.core.domain.user.domain.entity.Role.GUARDIAN
+            CASE WHEN :userId = patient.userId THEN guardian.userId ELSE patient.userId END,
+            CASE WHEN :userId = patient.userId THEN guardian.name ELSE patient.name END,
+            CASE WHEN :userId = patient.userId THEN guardian.patientCode ELSE patient.patientCode END,
+            CASE WHEN :userId = patient.userId THEN opensource.alzheimerdinger.core.domain.user.domain.entity.Role.GUARDIAN
                  ELSE opensource.alzheimerdinger.core.domain.user.domain.entity.Role.PATIENT END,
             relation.createdAt,
             relation.relationStatus,
@@ -25,10 +25,10 @@ public interface RelationRepository extends JpaRepository<Relation, String> {
         FROM Relation relation
         JOIN relation.patient patient
         JOIN relation.guardian guardian
-        WHERE patient.userId = :userNo OR guardian.userId = :userNo
+        WHERE patient.userId = :userId OR guardian.userId = :userId
         ORDER BY relation.createdAt DESC
     """)
-    List<RelationResponse> findRelation(@Param("userNo") String userNo);
+    List<RelationResponse> findRelation(@Param("userId") String userId);
 
     @Query("""
     SELECT COUNT(r) > 0

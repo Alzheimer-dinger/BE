@@ -27,7 +27,7 @@ public class TokenBlacklistService {
     }
 
     public void blacklist(String token, Duration expiration) {
+        redisTemplate.opsForValue().set(blacklistPrefix + token, token, expiration);
         log.info("[TokenBlacklistService] blacklist: token={} expiration={}s", token, expiration.getSeconds());
-        redisTemplate.opsForValue().set(blacklistPrefix + token, "", expiration);
     }
 }
