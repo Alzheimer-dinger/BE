@@ -83,6 +83,7 @@ jobs:
             GRAFANA_ADMIN_PASSWORD=${{ secrets.GRAFANA_ADMIN_PASSWORD }}
 
             KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+            FCM_CONFIG_FILENAME=firebase-config.json
             EOF
 
             # 3) GCP 키 복원 (GCS)
@@ -92,8 +93,7 @@ jobs:
             EOF
 
             # 4) Firebase 키 복원 (FCM)
-            mkdir -p src/main/resources/firebase
-            cat <<EOF > src/main/resources/firebase/alzheimerdinger-b9e53-firebase-adminsdk-fbsvc-a52d1783df.json
+            cat <<EOF > secret/firebase-config.json
             ${{ secrets.FIREBASE_CONFIG }}
             EOF
 

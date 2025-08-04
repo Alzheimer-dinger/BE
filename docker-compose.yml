@@ -156,8 +156,10 @@ services:
       SPRING_DATA_MONGODB_PASSWORD: "${MONGO_INITDB_ROOT_PASSWORD}"
 
       GOOGLE_APPLICATION_CREDENTIALS: "/app/secret/alzheimerdinger.json"
+      FCM_CONFIG_FILENAME: "${FCM_CONFIG_FILENAME}"
     volumes:
       - ./secret/alzheimerdinger.json:/app/secret/alzheimerdinger.json:ro
+      - ./secret/${FCM_CONFIG_FILENAME}:/app/secret/${FCM_CONFIG_FILENAME}:ro
     ports:
       - "8080:8080"
     depends_on:

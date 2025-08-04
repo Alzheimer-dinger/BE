@@ -6,11 +6,10 @@ import com.google.firebase.FirebaseOptions;
 import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.global.config.properties.FcmProperties;
 import opensource.alzheimerdinger.core.global.exception.RestApiException;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.io.FileInputStream;
 import java.io.IOException;
 
 @Component
@@ -23,7 +22,7 @@ public class FcmConfig {
     public void init() {
         try {
             GoogleCredentials googleCredentials = GoogleCredentials
-                    .fromStream(new ClassPathResource(fcmProperties.getPrefix() + fcmProperties.getFirebaseConfigPath()).getInputStream());
+                    .fromStream(new FileInputStream(fcmProperties.getPrefix() + fcmProperties.getFirebaseConfigPath()));
 
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(googleCredentials)
