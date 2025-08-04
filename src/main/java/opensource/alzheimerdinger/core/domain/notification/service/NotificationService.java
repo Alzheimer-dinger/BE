@@ -1,12 +1,12 @@
-package opensource.alzheimerdinger.core.domain.notification.domain.service;
+package opensource.alzheimerdinger.core.domain.notification.service;
 
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.MessagingErrorCode;
 import lombok.RequiredArgsConstructor;
-import opensource.alzheimerdinger.core.domain.notification.domain.entity.Notification;
-import opensource.alzheimerdinger.core.domain.notification.domain.repository.NotificationRepository;
+import opensource.alzheimerdinger.core.domain.notification.entity.Notification;
+import opensource.alzheimerdinger.core.domain.notification.repository.NotificationRepository;
 import opensource.alzheimerdinger.core.domain.user.domain.entity.User;
 import opensource.alzheimerdinger.core.domain.user.domain.service.UserService;
 import org.springframework.stereotype.Service;

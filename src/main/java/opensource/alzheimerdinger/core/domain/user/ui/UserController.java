@@ -20,6 +20,4 @@ public class UserController {
     public BaseResponse<ProfileResponse> getProfile(@CurrentUser String userId) {
         return BaseResponse.onSuccess(userProfileUseCase.findProfile(userId));
     }
-
-
 }

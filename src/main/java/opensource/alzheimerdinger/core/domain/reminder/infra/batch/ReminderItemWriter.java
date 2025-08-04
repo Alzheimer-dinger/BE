@@ -1,7 +1,7 @@
 package opensource.alzheimerdinger.core.domain.reminder.infra.batch;
 
 import lombok.RequiredArgsConstructor;
-import opensource.alzheimerdinger.core.domain.notification.domain.service.NotificationService;
+import opensource.alzheimerdinger.core.domain.notification.service.NotificationService;
 import opensource.alzheimerdinger.core.domain.reminder.domain.entity.Reminder;
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
@@ -14,7 +14,6 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor

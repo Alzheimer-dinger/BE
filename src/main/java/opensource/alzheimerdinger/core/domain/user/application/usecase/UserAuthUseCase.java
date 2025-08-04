@@ -3,6 +3,7 @@ package opensource.alzheimerdinger.core.domain.user.application.usecase;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import opensource.alzheimerdinger.core.domain.notification.service.FcmTokenService;
 import opensource.alzheimerdinger.core.domain.relation.domain.entity.RelationStatus;
 import opensource.alzheimerdinger.core.domain.relation.domain.service.RelationService;
 import opensource.alzheimerdinger.core.domain.user.application.dto.request.LoginRequest;
@@ -37,6 +38,7 @@ public class UserAuthUseCase {
     private final RelationService relationService;
     private final TokenBlacklistService tokenBlacklistService;
     private final TokenWhitelistService tokenWhitelistService;
+    private final FcmTokenService fcmTokenService;
 
     public void signUp(SignUpRequest request) {
         // 이미 가입된 이메일인지 확인
@@ -76,6 +78,8 @@ public class UserAuthUseCase {
                 .orElseThrow(() -> new RestApiException(EXPIRED_MEMBER_JWT));
         refreshTokenService.saveRefreshToken(user.getUserId(), refreshToken, tokenExpiration);
 
+        fcmTokenService.upsert(user, request.fcmToken());
+
         return new LoginResponse(accessToken, refreshToken);
     }
 
@@ -89,6 +93,8 @@ public class UserAuthUseCase {
 
         Duration expiration = tokenProvider.getRemainingDuration(accessToken)
                 .orElseThrow(() -> new RestApiException(INVALID_ACCESS_TOKEN));
+
+        fcmTokenService.expire(userId);
 
         // 캐싱 및 저장된 토큰 삭제 후 기존 사용하던 엑세스 토큰 무효화 등록
         tokenWhitelistService.deleteWhitelistToken(accessToken);
