@@ -4,6 +4,11 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+/logs/
+/src/main/resources/secret/
+
+--data-binary
+-H
 
 ### STS ###
 .apt_generated

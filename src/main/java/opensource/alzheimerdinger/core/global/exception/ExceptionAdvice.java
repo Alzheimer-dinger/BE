@@ -29,7 +29,7 @@ public class ExceptionAdvice extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<BaseResponse<String>> handle500Exception(Exception e) {
-        log.error("An error occurred: {}", e.getMessage(), e);
+        log.error("[handle500] unexpected exception: {}", e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
 
@@ -39,7 +39,8 @@ public class ExceptionAdvice extends ResponseEntityExceptionHandler {
     // @ExceptionHandler는 Controller계층에서 발생하는 에러를 잡아서 메서드로 처리해주는 기능
     @ExceptionHandler(value = RestApiException.class)
     public ResponseEntity<BaseResponse<String>> handleRestApiException(RestApiException e) {
-        log.info("handleRestApiException: {}", e.getMessage());
+        log.warn("[handleRestApiException] code={} message={}",
+                e.getErrorCode().getCode(), e.getErrorCode().getMessage());
         BaseCode errorCode = e.getErrorCode();
         return handleExceptionInternal(errorCode);
     }
@@ -50,6 +51,7 @@ public class ExceptionAdvice extends ResponseEntityExceptionHandler {
      */
     @ExceptionHandler
     public ResponseEntity<BaseResponse<String>> handleConstraintViolationException(ConstraintViolationException e) {
+        log.warn("[handleConstraintViolation] validation failed: {}", e.getMessage());
         return handleExceptionInternal(GlobalErrorStatus._VALIDATION_ERROR.getCode());
     }
 
@@ -60,6 +62,7 @@ public class ExceptionAdvice extends ResponseEntityExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<BaseResponse<String>> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException e) {
         // 예외 처리 로직
+        log.warn("[handleTypeMismatch] param={} invalid type: {}", e.getName(), e.getValue());
         return handleExceptionInternal(GlobalErrorStatus._METHOD_ARGUMENT_ERROR.getCode());
     }
 
@@ -70,6 +73,7 @@ public class ExceptionAdvice extends ResponseEntityExceptionHandler {
     @Override
     public ResponseEntity<Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException e, HttpHeaders headers, HttpStatusCode statusCode, WebRequest request) {
+        log.warn("[handleNotValid] binding errors={}", e.getBindingResult().getFieldErrors());
         Map<String, String> errors = new LinkedHashMap<>();
 
         e.getBindingResult().getFieldErrors().stream()

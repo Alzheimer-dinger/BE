@@ -7,14 +7,16 @@ public record ProfileResponse(
         String userId,
         String name,
         String email,
-        Gender gender
+        Gender gender,
+        String imageUrl
 ) {
     public static ProfileResponse create(User user) {
         return new ProfileResponse(
                 user.getUserId(),
                 user.getName(),
                 user.getEmail(),
-                user.getGender()
+                user.getGender(),
+                null
         );
     }
 }

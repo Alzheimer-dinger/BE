@@ -1,7 +1,9 @@
 package opensource.alzheimerdinger.core.domain.user.application.usecase;
 
 import lombok.RequiredArgsConstructor;
+import opensource.alzheimerdinger.core.domain.image.domain.service.ImageService;
 import opensource.alzheimerdinger.core.domain.user.application.dto.response.ProfileResponse;
+import opensource.alzheimerdinger.core.domain.user.domain.entity.User;
 import opensource.alzheimerdinger.core.domain.user.domain.service.UserService;
 import org.springframework.stereotype.Service;
 
@@ -10,8 +12,19 @@ import org.springframework.stereotype.Service;
 public class UserProfileUseCase {
 
     private final UserService userService;
+    private final ImageService imageService;
 
     public ProfileResponse findProfile(String userId) {
-        return userService.findProfile(userId);
+        ProfileResponse profileDto = userService.findProfile(userId);
+        User user = userService.findUser(userId);
+        String imageUrl = imageService.getProfileImageUrl(user);
+
+        return new ProfileResponse(
+                profileDto.userId(),
+                profileDto.name(),
+                profileDto.email(),
+                profileDto.gender(),
+                imageUrl
+        );
     }
 }
