@@ -18,7 +18,6 @@ import java.time.ZoneId;
 import java.util.Iterator;
 import java.util.List;
 
-@Slf4j
 @RequiredArgsConstructor
 public class ReminderKeysetItemReader implements ItemStreamReader<Reminder>, ItemStream {
 
@@ -31,8 +30,6 @@ public class ReminderKeysetItemReader implements ItemStreamReader<Reminder>, Ite
 
     @Override
     public Reminder read() {
-        log.info("Reading reminders from database...");
-
         if (buffer == null || !buffer.hasNext()) {
             buffer = fetch().iterator();
 
@@ -40,7 +37,6 @@ public class ReminderKeysetItemReader implements ItemStreamReader<Reminder>, Ite
                 return null;
         }
 
-        log.info("End Reading reminders from database...");
         return buffer.next();
     }
 

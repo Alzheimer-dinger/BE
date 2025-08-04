@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
-@Slf4j
 @Configuration
 @EnableScheduling
 @RequiredArgsConstructor
@@ -20,8 +19,6 @@ public class ReminderBatchScheduler {
 
     @Scheduled(cron = "0 */1 * * * *", zone = "Asia/Seoul")
     public void run() throws Exception {
-        log.info("Starting Reminder Batch Job");
-
         jobLauncher.run(
                 reminderJob,
                 new JobParametersBuilder()
