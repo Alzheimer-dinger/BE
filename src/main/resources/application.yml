@@ -8,7 +8,6 @@ spring:
     redis:
       host: ${SPRING_DATA_REDIS_HOST}
       port: ${SPRING_DATA_REDIS_PORT}
-      username: ${REDIS_USERNAME}
       password: ${REDIS_PASSWORD}
     mongodb:
       host: ${SPRING_DATA_MONGODB_HOST}
