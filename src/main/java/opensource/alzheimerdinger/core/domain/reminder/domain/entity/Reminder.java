@@ -29,8 +29,9 @@ public class Reminder extends BaseEntity {
 
     private LocalTime fireTime;
 
-    private LocalDate lastSent;
+    private LocalDate lastSentDate;
 
+    @Enumerated(EnumType.STRING)
     private ReminderStatus status;
 
     public void update(LocalTime fireTime, ReminderStatus status) {
@@ -38,12 +39,8 @@ public class Reminder extends BaseEntity {
         this.status = status;
     }
 
-    public void updateStatus(ReminderStatus status) {
-        this.status = status;
-    }
-
     public void updateLastSent(LocalDate lastSent) {
-        this.lastSent = lastSent;
+        this.lastSentDate = lastSent;
     }
 
     @PrePersist

@@ -16,6 +16,6 @@ public class ReminderQueryUseCase {
 
     public ReminderResponse find(String userId) {
         Reminder reminder = reminderService.findReminder(userId);
-        return new ReminderResponse(reminder.getFireTime());
+        return new ReminderResponse(reminder.getFireTime(), reminder.getStatus());
     }
 }

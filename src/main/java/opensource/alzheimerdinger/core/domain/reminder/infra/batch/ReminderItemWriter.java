@@ -45,30 +45,28 @@ public class ReminderItemWriter implements ItemWriter<Reminder> {
                 list,
                 500,
                 (ps, r) -> {
-                    ps.setDate(1, Date.valueOf(r.getLastSent()));
+                    ps.setDate(1, Date.valueOf(r.getLastSentDate()));
                     ps.setString(2, r.getUserId());
                 });
     }
 
     private Map<String, String> fetchTokens(List<String> userIds) {
-        if (userIds.isEmpty())
+        if (userIds.isEmpty()) {
             return Map.of();
+        }
 
-        String sql = "select user.user_id, token from fcm_token where user_id in (:ids)";
+        String sql = "select user_id, token from fcm_token where user_id in (:ids)";
         MapSqlParameterSource params = new MapSqlParameterSource().addValue("ids", userIds);
 
         return jdbcTemplate.query(sql, params, rs -> {
-            Map<String, String> map = userIds.stream()
-                    .collect(Collectors.toMap(id -> id, id -> null));
+            Map<String, String> map = new java.util.HashMap<>();
 
             while (rs.next()) {
-                map.put(
-                        rs.getString("user_id"),
-                        rs.getString("device_token")
-                );
+                map.put(rs.getString("user_id"), rs.getString("token"));
             }
 
             return map;
         });
     }
+
 }

@@ -57,7 +57,7 @@ public class ReminderKeysetItemReader implements ItemStreamReader<Reminder>, Ite
                 "select user_id, fire_time, last_sent_date " +
                         "from reminder " +
                         "where fire_time = :nowTime " +
-                        "and (last_sent_date is null or last_sent < :today) " +
+                        "and (last_sent_date is null or last_sent_date < :today) " +
                         "and status = 'ACTIVE' " +
                         "and user_id > :lastId " +
                         "order by user_id asc " +
@@ -67,7 +67,7 @@ public class ReminderKeysetItemReader implements ItemStreamReader<Reminder>, Ite
                 .userId(rs.getString("user_id"))
                 .user(entityManager.getReference(User.class, rs.getString("user_id")))
                 .fireTime(rs.getTime("fire_time").toLocalTime())
-                .lastSent(rs.getObject("last_sent", LocalDate.class))
+                .lastSentDate(rs.getObject("last_sent_date", LocalDate.class))
                 .status(ReminderStatus.ACTIVE)
                 .build());
 
