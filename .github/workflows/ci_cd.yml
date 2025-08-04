@@ -91,6 +91,12 @@ jobs:
             ${{ secrets.GCP_SA_KEY }}
             EOF
 
+            # 4) Firebase 키 복원 (FCM)
+            mkdir -p src/main/resources/firebase
+            cat <<EOF > src/main/resources/firebase/alzheimerdinger-b9e53-firebase-adminsdk-fbsvc-a52d1783df.json
+            ${{ secrets.FIREBASE_CONFIG }}
+            EOF
+
             # 4) Docker Compose로 배포
             docker-compose pull springboot
             docker-compose up -d --remove-orphans
