@@ -128,10 +128,10 @@ logging:
     org.springframework.batch.core: DEBUG
     org.springframework.jdbc.core: DEBUG
 
-CORS:
-  allowed-origins: "*"
-  allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
-  allowed-headers: "*"
+cors:
+  allowed-origins: "http://localhost:5173"
+  allowed-methods: "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+  allowed-headers: "Authorization"
   max-age: 3600
 
 management:
