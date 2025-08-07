@@ -97,6 +97,8 @@ exclude-auth-path-patterns:
       method: POST
     - path-pattern: /actuator/**
       method: GET
+    - path-pattern: /**
+      method: OPTIONS
 
 exclude-blacklist-path-patterns:
   paths:
