@@ -1,14 +1,12 @@
 package opensource.alzheimerdinger.core.domain.user.domain.entity;
 
 import io.hypersistence.utils.hibernate.id.Tsid;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import opensource.alzheimerdinger.core.global.common.BaseEntity;
 
 @Entity
 @Getter
@@ -16,10 +14,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class User {
+public class User extends BaseEntity {
 
     @Id @Tsid
     private String userId;
+
+    private String name;
 
     @Column(nullable = false)
     private String email;
@@ -27,5 +27,16 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private Role role;
+
+    private String patientCode;
+
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
+
+    public void updateRole(Role role) {
+        this.role = role;
+    }
 }
