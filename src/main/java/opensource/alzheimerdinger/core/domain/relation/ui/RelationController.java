@@ -55,7 +55,7 @@ public class RelationController {
     @PostMapping("/send")
     public BaseResponse<Void> sendRequest(
             @Parameter(hidden = true) @CurrentUser String userId,
-            @Valid @RequestBody RelationConnectRequest request) {
+            @Valid @org.springframework.web.bind.annotation.RequestBody RelationConnectRequest request) {
         relationManagementUseCase.send(userId, request);
         return BaseResponse.onSuccess();
     }
@@ -73,7 +73,7 @@ public class RelationController {
     @PostMapping("/resend")
     public BaseResponse<Void> resendRequest(
             @Parameter(hidden = true) @CurrentUser String userId,
-            @Valid @RequestBody RelationReconnectRequest request) {
+            @Valid @org.springframework.web.bind.annotation.RequestBody RelationReconnectRequest request) {
         relationManagementUseCase.resend(userId, request);
         return BaseResponse.onSuccess();
     }

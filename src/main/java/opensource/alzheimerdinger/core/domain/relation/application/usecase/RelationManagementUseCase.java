@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import static opensource.alzheimerdinger.core.domain.user.domain.entity.Role.GUARDIAN;
 import static opensource.alzheimerdinger.core.global.exception.code.status.GlobalErrorStatus._NOT_FOUND;
 import static opensource.alzheimerdinger.core.global.exception.code.status.GlobalErrorStatus._UNAUTHORIZED;
 
@@ -50,6 +51,10 @@ public class RelationManagementUseCase {
                         throw new RestApiException(_UNAUTHORIZED);
 
                     relation.updateStatus(status);
+
+                    if(RelationStatus.ACCEPTED.equals(status))
+                        user.updateRole(GUARDIAN);
+
                     notificationUseCase.sendReplyNotification(user, relation, status);
                 });
     }
@@ -61,7 +66,7 @@ public class RelationManagementUseCase {
                     User guardian = userService.findUser(userId);
                     User patient  = userService.findUser(req.to());
 
-                    relationService.save(patient, guardian, RelationStatus.REQUESTED, Role.GUARDIAN);
+                    relationService.save(patient, guardian, RelationStatus.REQUESTED, GUARDIAN);
                     notificationUseCase.sendRequestNotification(patient, guardian);
                 });
     }
