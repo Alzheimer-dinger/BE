@@ -4,6 +4,11 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+/logs/
+/src/main/resources/secret/
+
+--data-binary
+-H
 
 ### STS ###
 .apt_generated
@@ -35,3 +40,4 @@ out/
 
 ### VS Code ###
 .vscode/
+/src/main/resources/firebase/alzheimerdinger-b9e53-firebase-adminsdk-fbsvc-a52d1783df.json

@@ -5,8 +5,11 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import opensource.alzheimerdinger.core.domain.user.domain.service.TokenLifecycleService;
+import opensource.alzheimerdinger.core.domain.user.domain.service.RefreshTokenService;
+import opensource.alzheimerdinger.core.domain.user.domain.service.TokenWhitelistService;
 import opensource.alzheimerdinger.core.global.exception.RestApiException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.server.PathContainer;
 import org.springframework.security.core.Authentication;
@@ -25,42 +28,50 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final TokenProvider tokenProvider;
     private final ExcludeAuthPathProperties excludeAuthPathProperties;
-    private final TokenLifecycleService tokenLifecycleService;
+    private final RefreshTokenService refreshTokenService;
+    private final TokenWhitelistService tokenWhitelistService;
+    private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     private static final PathPatternParser pathPatternParser = new PathPatternParser();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        log.debug("[JwtAuthFilter] start: {} {}", request.getMethod(), request.getRequestURI());
         try {
             if (isExcludedPath(request)) {
+                log.debug("[JwtAuthFilter] excluded path, skip auth");
                 filterChain.doFilter(request, response);
                 return;
             }
 
             String token = tokenProvider.getToken(request)
-                    .orElseThrow(() -> new RestApiException(EMPTY_JWT));
-
-            String userId = tokenProvider.getId(token)
-                    .orElseThrow(() -> new RestApiException(INVALID_ID_TOKEN));
+                    .orElseThrow(() -> {
+                        log.warn("[JwtAuthFilter] missing Authorization header");
+                        return new RestApiException(EMPTY_JWT);
+                    });
 
             // 토큰 캐시 확인
-            if (tokenLifecycleService.existsByAccessToken(userId, token)) {
+            if (tokenWhitelistService.isWhitelistToken(token)) {
+                log.debug("[JwtAuthFilter] token whitelisted");
                 setAuthentication(token);
                 filterChain.doFilter(request, response);
                 return;
             }
 
             // 토큰 검증
-            if(tokenProvider.validateToken(token))
+            if (tokenProvider.validateToken(token)) {
+                log.info("[JwtAuthFilter] token valid, authenticating user");
                 setAuthentication(token);
-            else
+                // 토큰 캐시
+                tokenWhitelistService.whitelist(token, Duration.ofSeconds(30));
+            } else {
+                log.warn("[JwtAuthFilter] invalid token");
                 throw new RestApiException(INVALID_ACCESS_TOKEN);
-
-            // 토큰 캐시
-            tokenLifecycleService.saveAccessToken(userId, token, Duration.ofSeconds(30));
+            }
 
             filterChain.doFilter(request, response);
         } catch (RestApiException e) {
+            log.error("[JwtAuthFilter] authentication error: {}", e.getMessage());
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json;charset=UTF-8");
 

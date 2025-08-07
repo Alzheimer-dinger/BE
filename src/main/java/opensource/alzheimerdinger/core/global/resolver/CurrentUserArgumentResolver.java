@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.global.annotation.CurrentUser;
 import opensource.alzheimerdinger.core.global.exception.RestApiException;
 import opensource.alzheimerdinger.core.global.security.TokenProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -17,11 +19,16 @@ import static opensource.alzheimerdinger.core.global.exception.code.status.Globa
 public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolver {
 
     private final TokenProvider tokenProvider;
+    private static final Logger log = LoggerFactory.getLogger(CurrentUserArgumentResolver.class);
+
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
-        return parameter.getParameterAnnotation(CurrentUser.class) != null
+        boolean supported = parameter.getParameterAnnotation(CurrentUser.class) != null
                 && String.class.isAssignableFrom(parameter.getParameterType());
+        log.debug("[CurrentUserResolver] supportsParameter={} for {}", supported, parameter.getParameterName());
+        return supported;
+
     }
 
     @Override
@@ -29,16 +36,30 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
                                   ModelAndViewContainer mavContainer,
                                   NativeWebRequest webRequest,
                                   WebDataBinderFactory binderFactory) throws Exception {
+        log.debug("[CurrentUserResolver] start resolving argument '{}' of type {}",
+                parameter.getParameterName(), parameter.getParameterType().getSimpleName());
+
         HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
 
         if (request == null) {
+            log.warn("[CurrentUserResolver] HttpServletRequest is null");
             throw new RestApiException(_UNAUTHORIZED);
         }
 
         String token = tokenProvider.getToken(request)
-                .orElseThrow(() -> new RestApiException(_UNAUTHORIZED));
+                .orElseThrow(() -> {
+                    log.warn("[CurrentUserResolver] no Authorization header or Bearer token");
+                    return new RestApiException(_UNAUTHORIZED);
+                });
+        log.debug("[CurrentUserResolver] token extracted: {}", token);
 
-        return tokenProvider.getId(token)
-                .orElseThrow(() -> new RestApiException(_UNAUTHORIZED));
+        String userId = tokenProvider.getId(token)
+                .orElseThrow(() -> {
+                    log.warn("[CurrentUserResolver] token did not contain valid userId");
+                    return new RestApiException(_UNAUTHORIZED);
+                });
+        log.info("[CurrentUserResolver] resolved current userId={}", userId);
+
+        return userId;
     }
 }
