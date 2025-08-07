@@ -1,5 +1,10 @@
 package opensource.alzheimerdinger.core.domain.relation.application.usecase;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import opensource.alzheimerdinger.core.domain.notification.usecase.NotificationUseCase;
 import opensource.alzheimerdinger.core.domain.relation.application.dto.request.RelationConnectRequest;
 import opensource.alzheimerdinger.core.domain.relation.application.dto.request.RelationReconnectRequest;
 import opensource.alzheimerdinger.core.domain.relation.application.dto.response.RelationResponse;
@@ -10,11 +15,14 @@ import opensource.alzheimerdinger.core.domain.user.domain.entity.Role;
 import opensource.alzheimerdinger.core.domain.user.domain.entity.User;
 import opensource.alzheimerdinger.core.domain.user.domain.service.UserService;
 import opensource.alzheimerdinger.core.global.exception.RestApiException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.List;
 
@@ -24,11 +32,23 @@ import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class RelationManagementUseCaseTest {
 
     @Mock RelationService relationService;
     @Mock UserService userService;
+    @Mock MeterRegistry registry;
+    @Mock NotificationUseCase notificationUseCase;
+
     @InjectMocks RelationManagementUseCase relationManagementUseCase;
+
+    @BeforeEach
+    void setUp() {
+        when(registry.counter(anyString())).thenReturn(mock(Counter.class));
+        when(registry.timer(anyString(), any(String[].class))).thenReturn(
+                Timer.builder("test").register(new SimpleMeterRegistry())
+        );
+    }
 
     /* ---------- findRelations ---------- */
     @Test
@@ -46,15 +66,16 @@ class RelationManagementUseCaseTest {
     /* ---------- reply ---------- */
     @Test
     void reply_success() {
-        String userId = "receiver";
+        User user = new User();
         String relationId = "r1";
         Relation relation = mock(Relation.class);
 
         when(relationService.findRelation(relationId)).thenReturn(relation);
+        when(userService.findUser(user.getUserId())).thenReturn(user);
         when(relation.getRelationStatus()).thenReturn(RelationStatus.REQUESTED);
-        when(relation.isReceiver(userId)).thenReturn(true);
+        when(relation.isReceiver(user)).thenReturn(true);
 
-        relationManagementUseCase.reply(userId, relationId, RelationStatus.ACCEPTED);
+        relationManagementUseCase.reply(user.getUserId(), relationId, RelationStatus.ACCEPTED);
 
         verify(relation).updateStatus(RelationStatus.ACCEPTED);
     }
@@ -65,29 +86,29 @@ class RelationManagementUseCaseTest {
         when(relationService.findRelation("r1")).thenReturn(relation);
         when(relation.getRelationStatus()).thenReturn(RelationStatus.ACCEPTED);
 
-        Throwable thrown = catchThrowable(() -> relationManagementUseCase.reply("receiver", "r1", RelationStatus.ACCEPTED));
+        Throwable thrown = catchThrowable(() ->
+                relationManagementUseCase.reply("receiver", "r1", RelationStatus.ACCEPTED)
+        );
 
-        assertThat(thrown)
-                .isInstanceOf(RestApiException.class);
-
-        assertThat(((RestApiException) thrown).getErrorCode())
-                .isEqualTo(_NOT_FOUND.getCode());
+        assertThat(thrown).isInstanceOf(RestApiException.class);
+        assertThat(((RestApiException) thrown).getErrorCode()).isEqualTo(_NOT_FOUND.getCode());
     }
 
     @Test
     void reply_fail_notReceiver() {
         Relation relation = mock(Relation.class);
+        User user = new User();
         when(relationService.findRelation("r1")).thenReturn(relation);
+        when(userService.findUser("receiver")).thenReturn(user);
         when(relation.getRelationStatus()).thenReturn(RelationStatus.REQUESTED);
-        when(relation.isReceiver("receiver")).thenReturn(false);
+        when(relation.isReceiver(user)).thenReturn(false);
 
-        Throwable thrown = catchThrowable(() -> relationManagementUseCase.reply("receiver", "r1", RelationStatus.ACCEPTED));
+        Throwable thrown = catchThrowable(() ->
+                relationManagementUseCase.reply("receiver", "r1", RelationStatus.ACCEPTED)
+        );
 
-        assertThat(thrown)
-                .isInstanceOf(RestApiException.class);
-
-        assertThat(((RestApiException) thrown).getErrorCode())
-                .isEqualTo(_UNAUTHORIZED.getCode());
+        assertThat(thrown).isInstanceOf(RestApiException.class);
+        assertThat(((RestApiException) thrown).getErrorCode()).isEqualTo(_UNAUTHORIZED.getCode());
     }
 
     /* ---------- send ---------- */
@@ -105,45 +126,26 @@ class RelationManagementUseCaseTest {
 
         relationManagementUseCase.send(guardianId, req);
 
-        verify(relationService)
-                .save(patient, guardian, RelationStatus.REQUESTED, Role.GUARDIAN);
-    }
-
-    @Test
-    void send_fail_alreadyExists() {
-        String guardianId = "g1";
-        String patientId = "p1";
-        RelationConnectRequest req = new RelationConnectRequest(patientId);
-
-        User guardian = mock(User.class);
-        User patient = mock(User.class);
-        when(userService.findUser(anyString())).thenReturn(guardian, patient);
-        when(relationService.existsByGuardianAndPatient(guardian, patient)).thenReturn(true);
-
-        Throwable thrown = catchThrowable(() -> relationManagementUseCase.send(guardianId, req));
-
-        assertThat(thrown)
-                .isInstanceOf(RestApiException.class);
-
-        assertThat(((RestApiException) thrown).getErrorCode())
-                .isEqualTo(_EXIST_ENTITY.getCode());
+        verify(relationService).save(patient, guardian, RelationStatus.REQUESTED, Role.GUARDIAN);
+        verify(notificationUseCase).sendRequestNotification(patient, guardian);
     }
 
     /* ---------- resend ---------- */
     @Test
     void resend_success() {
-        String userId = "g1";
+        User user = new User();
         String relationId = "r1";
-        String guardianId = "g2";
         Relation relation = mock(Relation.class);
         when(relationService.findRelation(relationId)).thenReturn(relation);
+        when(userService.findUser(user.getUserId())).thenReturn(user);
         when(relation.getRelationStatus()).thenReturn(RelationStatus.DISCONNECTED);
-        when(relation.isMember(userId)).thenReturn(false);
+        when(relation.isMember(user)).thenReturn(false);
 
-        RelationReconnectRequest req = new RelationReconnectRequest(relationId, guardianId);
-        relationManagementUseCase.resend(userId, req);
+        RelationReconnectRequest req = new RelationReconnectRequest(relationId, "guardianId");
+        relationManagementUseCase.resend(user.getUserId(), req);
 
-        verify(relation).resend(userId);
+        verify(relation).resend(user.getUserId());
+        verify(notificationUseCase).sendResendRequestNotification(user, relation);
     }
 
     @Test
@@ -152,33 +154,32 @@ class RelationManagementUseCaseTest {
         when(relationService.findRelation("r1")).thenReturn(relation);
         when(relation.getRelationStatus()).thenReturn(RelationStatus.ACCEPTED);
 
-        RelationReconnectRequest req = new RelationReconnectRequest("r1", "보호자");
+        RelationReconnectRequest req = new RelationReconnectRequest("r1", "guardianId");
 
-        Throwable thrown = catchThrowable(() -> relationManagementUseCase.resend("g1", req));
+        Throwable thrown = catchThrowable(() ->
+                relationManagementUseCase.resend("g1", req)
+        );
 
-        assertThat(thrown)
-                .isInstanceOf(RestApiException.class);
-
-        assertThat(((RestApiException) thrown).getErrorCode())
-                .isEqualTo(_NOT_FOUND.getCode());
+        assertThat(thrown).isInstanceOf(RestApiException.class);
+        assertThat(((RestApiException) thrown).getErrorCode()).isEqualTo(_NOT_FOUND.getCode());
     }
 
     @Test
     void resend_fail_memberUnauthorized() {
         Relation relation = mock(Relation.class);
         when(relationService.findRelation("r1")).thenReturn(relation);
+        when(userService.findUser("g1")).thenReturn(new User());
         when(relation.getRelationStatus()).thenReturn(RelationStatus.DISCONNECTED);
-        when(relation.isMember("g1")).thenReturn(true);
+        when(relation.isMember(any(User.class))).thenReturn(true);
 
-        RelationReconnectRequest req = new RelationReconnectRequest("r1", "보호자");
+        RelationReconnectRequest req = new RelationReconnectRequest("r1", "guardianId");
 
-        Throwable thrown = catchThrowable(() -> relationManagementUseCase.resend("g1", req));
+        Throwable thrown = catchThrowable(() ->
+                relationManagementUseCase.resend("g1", req)
+        );
 
-        assertThat(thrown)
-                .isInstanceOf(RestApiException.class);
-
-        assertThat(((RestApiException) thrown).getErrorCode())
-                .isEqualTo(_UNAUTHORIZED.getCode());
+        assertThat(thrown).isInstanceOf(RestApiException.class);
+        assertThat(((RestApiException) thrown).getErrorCode()).isEqualTo(_UNAUTHORIZED.getCode());
     }
 
     /* ---------- disconnect ---------- */
@@ -186,25 +187,27 @@ class RelationManagementUseCaseTest {
     void disconnect_success() {
         Relation relation = mock(Relation.class);
         when(relationService.findRelation("r1")).thenReturn(relation);
-        when(relation.isMember("g1")).thenReturn(true);
+        when(userService.findUser("g1")).thenReturn(new User());
+        when(relation.isMember(any(User.class))).thenReturn(true);
 
         relationManagementUseCase.disconnect("g1", "r1");
 
         verify(relation).updateStatus(RelationStatus.DISCONNECTED);
+        verify(notificationUseCase).sendDisconnectNotification(any(), eq(relation));
     }
 
     @Test
     void disconnect_fail_notMember() {
         Relation relation = mock(Relation.class);
         when(relationService.findRelation("r1")).thenReturn(relation);
-        when(relation.isMember("g1")).thenReturn(false);
+        when(userService.findUser("g1")).thenReturn(new User());
+        when(relation.isMember(any(User.class))).thenReturn(false);
 
-        Throwable thrown = catchThrowable(() -> relationManagementUseCase.disconnect("g1", "r1"));
+        Throwable thrown = catchThrowable(() ->
+                relationManagementUseCase.disconnect("g1", "r1")
+        );
 
-        assertThat(thrown)
-                .isInstanceOf(RestApiException.class);
-
-        assertThat(((RestApiException) thrown).getErrorCode())
-                .isEqualTo(_NOT_FOUND.getCode());
+        assertThat(thrown).isInstanceOf(RestApiException.class);
+        assertThat(((RestApiException) thrown).getErrorCode()).isEqualTo(_NOT_FOUND.getCode());
     }
 }

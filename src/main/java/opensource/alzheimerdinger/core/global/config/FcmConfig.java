@@ -6,6 +6,7 @@ import com.google.firebase.FirebaseOptions;
 import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.global.config.properties.FcmProperties;
 import opensource.alzheimerdinger.core.global.exception.RestApiException;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;

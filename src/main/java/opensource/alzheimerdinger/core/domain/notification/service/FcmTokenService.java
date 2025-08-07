@@ -4,7 +4,10 @@ import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.domain.notification.entity.FcmToken;
 import opensource.alzheimerdinger.core.domain.notification.repository.FcmTokenRepository;
 import opensource.alzheimerdinger.core.domain.user.domain.entity.User;
+import opensource.alzheimerdinger.core.global.exception.RestApiException;
 import org.springframework.stereotype.Service;
+
+import static opensource.alzheimerdinger.core.global.exception.code.status.GlobalErrorStatus._NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -25,5 +28,10 @@ public class FcmTokenService {
 
     public void expire(String userId) {
         fcmTokenRepository.expire(userId);
+    }
+
+    public String findByUser(User user) {
+        return fcmTokenRepository.findTokenByUser(user)
+                .orElseThrow(() -> new RestApiException(_NOT_FOUND));
     }
 }

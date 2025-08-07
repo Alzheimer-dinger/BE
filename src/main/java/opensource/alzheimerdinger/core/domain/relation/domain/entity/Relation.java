@@ -35,17 +35,21 @@ public class Relation extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Role initiator;
 
-    public boolean isReceiver(String myUserId) {
-        return initiator == Role.PATIENT && guardian.getUserId().equals(myUserId)
-                || initiator == Role.GUARDIAN && patient.getUserId().equals(myUserId);
+    public boolean isReceiver(User user) {
+        return initiator == Role.PATIENT && guardian.equals(user)
+                || initiator == Role.GUARDIAN && patient.equals(user);
     }
 
     public void updateStatus(RelationStatus status) {
         this.relationStatus = status;
     }
 
-    public boolean isMember(String myUserId) {
-        return patient.getUserId().equals(myUserId) || guardian.getUserId().equals(myUserId);
+    public boolean isMember(User user) {
+        return patient.equals(user) || guardian.equals(user);
+    }
+
+    public User getCounter(User user) {
+        return patient.equals(user) ? guardian : patient;
     }
 
     public void resend(String userId) {

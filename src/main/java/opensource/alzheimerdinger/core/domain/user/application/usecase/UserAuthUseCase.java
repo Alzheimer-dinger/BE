@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.domain.notification.service.FcmTokenService;
+import opensource.alzheimerdinger.core.domain.notification.usecase.NotificationUseCase;
 import opensource.alzheimerdinger.core.domain.relation.domain.entity.RelationStatus;
 import opensource.alzheimerdinger.core.domain.relation.domain.service.RelationService;
 import opensource.alzheimerdinger.core.domain.user.application.dto.request.LoginRequest;
@@ -42,6 +43,7 @@ public class UserAuthUseCase {
     private final FcmTokenService fcmTokenService;
 
     private static final Logger log = LoggerFactory.getLogger(UserAuthUseCase.class);
+    private final NotificationUseCase notificationUseCase;
 
     public void signUp(SignUpRequest request) {
         log.debug("[UserAuth] signUp start: email={}", request.email());
@@ -57,12 +59,15 @@ public class UserAuthUseCase {
 
         if (request.patientCode() != null) {
             User patient = userService.findPatient(request.patientCode());
+
             if (!Objects.equals(patient.getPatientCode(), request.patientCode())) {
                 log.warn("[UserAuth] signUp failed: patientCode mismatch. requestCode={}, patientId={}",
                         request.patientCode(), patient.getUserId());
                 throw new RestApiException(_NOT_FOUND);
             }
+
             relationService.save(patient, user, RelationStatus.REQUESTED, Role.GUARDIAN);
+            notificationUseCase.sendRequestNotification(patient, user);
             log.debug("[UserAuth] relation created: guardianId={}, patientId={}", user.getUserId(), patient.getUserId());
         }
 
