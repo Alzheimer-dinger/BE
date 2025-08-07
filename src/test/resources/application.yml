@@ -1,47 +1,86 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=MySQL
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+    username: ${USERNAME}
+    url: ${URL}
+    password: ${password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
   data:
     redis:
       host: localhost
       port: 6379
     mongodb:
-      uri: mongodb://localhost:27017/alzheimerdinger-test
+      host: localhost
+      port: 27017
+      database: picus
+      username: picus
+      password: picus
+      authentication-database: admin
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
-    database-platform: org.hibernate.dialect.H2Dialect
+      ddl-auto: create
+    database: mysql
+    database-platform: org.hibernate.dialect.MySQL8Dialect
     open-in-view: false
 
+  batch:
+    job:
+      enabled: false
+    jdbc:
+      initialize-schema: always
+      table-prefix: BATCH_
+    execution:
+      isolation-level-for-create: SERIALIZABLE
+
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
     consumer:
-      group-id: test-group
+      group-id: ${KAFKA_CONSUMER_GROUP:transcript-consumer-group}
+    analysis-group:
+      group-id: ${KAFKA_CONSUMER_ANALYSIS_GROUP:analysis-consumer-group}
+    cognitive-group:
+      group-id: ${KAFKA_CONSUMER_COGNITIVE_GROUP:cognitive-consumer-group}
+
     topics:
-      transcript: transcript
-      emotion-analysis: emotion-analysis
-      cognitive-report: cognitive-report
+      transcript: ${KAFKA_TOPIC_TRANSCRIPT:transcript}
+      emotion-analysis: ${KAFKA_TOPIC_EMOTION_ANALYSIS:emotion-analysis}
+      cognitive-report: ${KAFKA_TOPIC_COGNITIVE_REPORT:cognitive-report}
+
 
 jwt:
   key: fdsafdsafdsafdsafdsafdsafdsafdsafdsafdsafda
   access:
     expiration: 360000
 
-cors:
-  allowed-origins: "https://a-dinger.vercel.app,http://localhost:5173"
-  allowed-methods: "GET,PUT,POST,PATCH,DELETE,OPTIONS"
-  allowed-headers: "Authorization"
-  max-age: 3600
+springdoc:
+  swagger-ui:
+    groups-order: DESC # path, query, body, response 순서대로 출력
+    tags-sorter: alpha # 태그를 알파벳 순으로 정렬
+    operations-sorter: method # delete - get - patch - post - put 순으로 정렬
+  paths-to-match:
+    - /api/**
+
 
 exclude-auth-path-patterns:
   paths:
     - path-pattern: /api/users/sign-up
       method: POST
     - path-pattern: /api/users/login
+      method: POST
+    - path-pattern: /swagger-ui.html
+      method: GET
+    - path-pattern: /swagger-ui/index.html
+      method: GET
+    - path-pattern: /swagger-ui/**
+      method: GET
+    - path-pattern: /v3/api-docs
+      method: GET
+    - path-pattern: /v3/api-docs/swagger-config
+      method: GET
+    - path-pattern: /webjars
+      method: GET
+    - path-pattern: /api/batch/transcript/execute
       method: POST
 
 exclude-blacklist-path-patterns:
@@ -50,3 +89,28 @@ exclude-blacklist-path-patterns:
       method: POST
     - path-pattern: /api/users/login
       method: POST
+    - path-pattern: /swagger-ui.html
+      method: GET
+    - path-pattern: /swagger-ui/index.html
+      method: GET
+    - path-pattern: /swagger-ui/**
+      method: GET
+    - path-pattern: /v3/api-docs
+      method: GET
+    - path-pattern: /v3/api-docs/swagger-config
+      method: GET
+    - path-pattern: /webjars
+      method: GET
+
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.apache.kafka: WARN
+    org.springframework.kafka: INFO
+
+CORS:
+  allowed-origins: "localhost:5173"
+  allowed-methods: "GET,POST,PUT,DELETE,PATCH,OPTIONS"
+  allowed-headers: "Authorization"
+  max-age: 3600
