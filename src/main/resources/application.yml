@@ -135,7 +135,7 @@ logging:
 cors:
   allowed-origins: "http://localhost:5173"
   allowed-methods: "GET,POST,PUT,PATCH,DELETE,OPTIONS"
-  allowed-headers: "Authorization"
+  allowed-headers: "Authorization,Content-Type,Accept"
   max-age: 3600
 
 management:
