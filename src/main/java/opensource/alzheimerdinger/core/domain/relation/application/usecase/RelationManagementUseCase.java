@@ -3,6 +3,7 @@ package opensource.alzheimerdinger.core.domain.relation.application.usecase;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import opensource.alzheimerdinger.core.domain.notification.usecase.NotificationUseCase;
 import opensource.alzheimerdinger.core.domain.relation.application.dto.request.RelationConnectRequest;
 import opensource.alzheimerdinger.core.domain.relation.application.dto.request.RelationReconnectRequest;
 import opensource.alzheimerdinger.core.domain.relation.application.dto.response.RelationResponse;
@@ -17,7 +18,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static opensource.alzheimerdinger.core.global.exception.code.status.GlobalErrorStatus.*;
+import static opensource.alzheimerdinger.core.global.exception.code.status.GlobalErrorStatus._NOT_FOUND;
+import static opensource.alzheimerdinger.core.global.exception.code.status.GlobalErrorStatus._UNAUTHORIZED;
 
 @Service
 @Transactional
@@ -27,6 +29,7 @@ public class RelationManagementUseCase {
     private final RelationService relationService;
     private final UserService userService;
     private final MeterRegistry registry;
+    private final NotificationUseCase notificationUseCase;
 
     public List<RelationResponse> findRelations(String userId) {
         registry.counter("domain_relation_find_requests").increment(); // 호출 횟수
@@ -38,12 +41,16 @@ public class RelationManagementUseCase {
         registry.counter("domain_relation_reply_requests").increment();
         registry.timer("domain_relation_reply_duration", "domain", "relation")
                 .record(() -> {
-                    Relation r = relationService.findRelation(relationId);
-                    if (!r.getRelationStatus().equals(RelationStatus.REQUESTED))
+                    Relation relation = relationService.findRelation(relationId);
+                    User user = userService.findUser(userId);
+
+                    if (!relation.getRelationStatus().equals(RelationStatus.REQUESTED))
                         throw new RestApiException(_NOT_FOUND);
-                    if (!r.isReceiver(userId))
+                    if (!relation.isReceiver(user))
                         throw new RestApiException(_UNAUTHORIZED);
-                    r.updateStatus(status);
+
+                    relation.updateStatus(status);
+                    notificationUseCase.sendReplyNotification(user, relation, status);
                 });
     }
 
@@ -53,7 +60,9 @@ public class RelationManagementUseCase {
                 .record(() -> {
                     User guardian = userService.findUser(userId);
                     User patient  = userService.findUser(req.to());
+
                     relationService.save(patient, guardian, RelationStatus.REQUESTED, Role.GUARDIAN);
+                    notificationUseCase.sendRequestNotification(patient, guardian);
                 });
     }
 
@@ -61,12 +70,16 @@ public class RelationManagementUseCase {
         registry.counter("domain_relation_resend_requests").increment();
         registry.timer("domain_relation_resend_duration", "domain", "relation")
                 .record(() -> {
-                    Relation r = relationService.findRelation(req.relationId());
-                    if (r.getRelationStatus() != RelationStatus.DISCONNECTED)
+                    Relation relation = relationService.findRelation(req.relationId());
+                    User user = userService.findUser(userId);
+
+                    if (relation.getRelationStatus() != RelationStatus.DISCONNECTED)
                         throw new RestApiException(_NOT_FOUND);
-                    if (r.isMember(userId))
+                    if (relation.isMember(user))
                         throw new RestApiException(_UNAUTHORIZED);
-                    r.resend(userId);
+
+                    relation.resend(userId);
+                    notificationUseCase.sendResendRequestNotification(user, relation);
                 });
     }
 
@@ -74,10 +87,14 @@ public class RelationManagementUseCase {
         registry.counter("domain_relation_disconnect_requests").increment();
         registry.timer("domain_relation_disconnect_duration", "domain", "relation")
                 .record(() -> {
-                    Relation r = relationService.findRelation(relationId);
-                    if (!r.isMember(userId))
+                    Relation relation = relationService.findRelation(relationId);
+                    User user = userService.findUser(userId);
+
+                    if (!relation.isMember(user))
                         throw new RestApiException(_NOT_FOUND);
-                    r.updateStatus(RelationStatus.DISCONNECTED);
+
+                    relation.updateStatus(RelationStatus.DISCONNECTED);
+                    notificationUseCase.sendDisconnectNotification(user, relation);
                 });
     }
 }
