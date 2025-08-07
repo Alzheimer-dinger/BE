@@ -120,6 +120,8 @@ exclude-blacklist-path-patterns:
       method: GET
     - path-pattern: /actuator/**
       method: GET
+    - path-pattern: /**
+      method: OPTIONS
 
 
 logging:
