@@ -2,7 +2,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ main ]
 
 jobs:
   build-and-push:
@@ -46,14 +46,18 @@ jobs:
           key: ${{ secrets.VM_SSH_KEY }}
           port: 22
           script: |
+            set -e
+
+            # 0) 디스크 정리
+            docker system prune -af
+            docker volume prune -f
+
             # repo clone / pull
             if [ ! -d /opt/your-app ]; then
-              git clone --branch feature/OPS-39 https://github.com/YourOrg/YourRepo.git /opt/your-app
-              # git clone https://github.com/YourOrg/YourRepo.git /opt/your-app
+              git clone --branch main https://github.com/Alzheimer-dinger/BE.git /opt/your-app
             else
               cd /opt/your-app
-              git pull origin feature/OPS-39
-              # git pull origin develop
+              git pull origin main
             fi
             
             # 작업 디렉토리 이동
@@ -79,12 +83,18 @@ jobs:
             GRAFANA_ADMIN_PASSWORD=${{ secrets.GRAFANA_ADMIN_PASSWORD }}
 
             KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+            FCM_CONFIG_FILENAME=firebase-config.json
             EOF
 
             # 3) GCP 키 복원 (GCS)
             mkdir -p secret
             cat <<EOF > secret/alzheimerdinger.json
             ${{ secrets.GCP_SA_KEY }}
+            EOF
+
+            # 4) Firebase 키 복원 (FCM)
+            cat <<EOF > secret/firebase-config.json
+            ${{ secrets.FIREBASE_CONFIG }}
             EOF
 
             # 4) Docker Compose로 배포
