@@ -73,7 +73,7 @@ gcp:
     bucket-name: alzheimerdinger-bucket
     default-profile-url: https://storage.googleapis.com/alzheimerdinger-bucket/image/default-profile.png
   credentials:
-    file: secret/alzheimerdinger-b9e53-9483d3e5bc94.json
+    file: file:/app/secret/alzheimerdinger.json
   project-id: alzheimerdinger-b9e53
 
 exclude-auth-path-patterns:

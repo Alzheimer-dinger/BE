@@ -19,7 +19,7 @@ public class GcsConfig {
      * GCP 서비스 계정 키(JSON) 파일 경로 (classpath:…)
      */
     @Value("${gcp.credentials.file}")
-    private String credentialsResource;
+    private Resource credentialsResource;
 
     /**
      * GCP 프로젝트 ID
@@ -33,7 +33,7 @@ public class GcsConfig {
     @Bean
     public Storage googleStorage() throws IOException {
         GoogleCredentials creds = GoogleCredentials
-                .fromStream(new ClassPathResource(credentialsResource).getInputStream())
+                .fromStream(credentialsResource.getInputStream())
                 .createScoped(List.of("https://www.googleapis.com/auth/cloud-platform"));
 
         return StorageOptions.newBuilder()
