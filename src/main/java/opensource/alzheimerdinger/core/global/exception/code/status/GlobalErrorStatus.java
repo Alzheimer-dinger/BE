@@ -27,6 +27,8 @@ public enum GlobalErrorStatus implements BaseCodeInterface {
     _S3_DELETE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "S3_5002", "파일 삭제에 실패했습니다."),
     _FALIED_READ_FILE(HttpStatus.BAD_REQUEST, "FILE002","파일을 읽는 중 문제가 발생하였습니다."),
 
+    FIREBASE_DISCONNECTED(HttpStatus.INTERNAL_SERVER_ERROR, "FCM002","알림 토큰에 문제가 발생하였습니다."),
+
     // For test
     TEMP_EXCEPTION(HttpStatus.BAD_REQUEST, "TEMP4001", "예외처리 테스트입니다."),
     ;
