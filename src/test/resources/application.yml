@@ -32,9 +32,10 @@ jwt:
     expiration: 360000
 
 cors:
-  allowed-origins: "*"
-  allowed-methods: "*"
-  allowed-headers: "*"
+  allowed-origins: "https://a-dinger.vercel.app,http://localhost:3000"
+  allowed-methods: "GET,PUT,POST,PATCH,DELETE,OPTIONS"
+  allowed-headers: "Authorization"
+  max-age: 3600
 
 exclude-auth-path-patterns:
   paths:

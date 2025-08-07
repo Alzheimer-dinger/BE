@@ -100,7 +100,7 @@ public class SecurityConfig {
         // 인증정보(cookie, Authorization 헤더) 허용 여부
         config.setAllowCredentials(true);
         // pre-flight 캐시 시간 (초)
-        config.setMaxAge(3600L);
+        config.setMaxAge(corsProperties.getMaxAge());
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         // 모든 경로에 대해 위 정책을 적용
