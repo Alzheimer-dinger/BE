@@ -1,5 +1,6 @@
 package opensource.alzheimerdinger.core.domain.image.ui;
 
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.domain.image.application.dto.request.UpdateProfileImageRequest;
@@ -16,12 +17,16 @@ public class ImageController {
     private final ImageUploadUseCase useCase;
 
     @GetMapping("/profile/upload-url")
-    public UploadUrlResponse requestPostUrl(@CurrentUser String userId, @RequestParam String extension) {
+    public UploadUrlResponse requestPostUrl(
+            @Parameter(hidden = true)
+            @CurrentUser String userId, @RequestParam String extension) {
         return useCase.requestPostUrl(userId, extension);
     }
 
     @PostMapping("/profile")
-    public ProfileResponse updateImage(@CurrentUser String userId, @RequestBody @Valid UpdateProfileImageRequest req) {
+    public ProfileResponse updateImage(
+            @Parameter(hidden = true)
+            @CurrentUser String userId, @RequestBody @Valid UpdateProfileImageRequest req) {
         return useCase.updateImage(userId, req.fileKey());
     }
 }

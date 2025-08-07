@@ -1,5 +1,6 @@
 package opensource.alzheimerdinger.core.domain.reminder.ui;
 
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.domain.reminder.application.dto.request.ReminderSettingRequest;
@@ -19,13 +20,17 @@ public class ReminderController {
     private final ReminderQueryUseCase reminderQueryUseCase;
 
     @PostMapping
-    public BaseResponse<Void> register(@CurrentUser String userId, @RequestBody @Valid ReminderSettingRequest request) {
+    public BaseResponse<Void> register(
+            @Parameter(hidden = true)
+            @CurrentUser String userId, @RequestBody @Valid ReminderSettingRequest request) {
         reminderCommandUseCase.register(userId, request);
         return BaseResponse.onSuccess();
     }
 
     @GetMapping
-    public BaseResponse<ReminderResponse> find(@CurrentUser String userId) {
+    public BaseResponse<ReminderResponse> find(
+            @Parameter(hidden = true)
+            @CurrentUser String userId) {
         return BaseResponse.onSuccess(reminderQueryUseCase.find(userId));
     }
 }
