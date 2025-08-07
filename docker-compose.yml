@@ -1,4 +1,18 @@
 services:
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"    # HTTPS를 쓰실 경우
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      - springboot
+    networks:
+      - monitoring-net
+
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.1
     environment:
@@ -19,6 +33,10 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     ports:
       - "9092:9092"
+    healthcheck:
+      test: [ "CMD", "bash", "-c", "echo > /dev/tcp/localhost/9092" ]
+      interval: 10s
+      retries: 5
     networks:
       - monitoring-net
 
@@ -76,6 +94,9 @@ services:
       KAFKA_SERVER: "kafka:9092"
     ports:
       - "9308:9308"
+    depends_on:
+      kafka:
+        condition: service_healthy
     networks:
       - monitoring-net
 
@@ -107,7 +128,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
       MYSQL_DATABASE: "${MYSQL_DATABASE}"
-      MYSQL_USERNAME: "${MYSQL_USERNAME}"
+      MYSQL_USER: "${MYSQL_USERNAME}"
       MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
     ports:
       - "3306:3306"
@@ -125,8 +146,7 @@ services:
 
       SPRING_DATA_REDIS_HOST: "redis"
       SPRING_DATA_REDIS_PORT: "6379"
-      SPRING_DATA_REDIS_USERNAME: "${REDIS_USERNAME}"
-      SPRING_DATA_REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
 
       SPRING_DATA_MONGODB_HOST: "mongo"
       SPRING_DATA_MONGODB_PORT: "27017"
@@ -135,8 +155,10 @@ services:
       SPRING_DATA_MONGODB_PASSWORD: "${MONGO_INITDB_ROOT_PASSWORD}"
 
       GOOGLE_APPLICATION_CREDENTIALS: "/app/secret/alzheimerdinger.json"
+      FCM_CONFIG_FILENAME: "${FCM_CONFIG_FILENAME}"
     volumes:
       - ./secret/alzheimerdinger.json:/app/secret/alzheimerdinger.json:ro
+      - ./secret/${FCM_CONFIG_FILENAME}:/app/secret/${FCM_CONFIG_FILENAME}:ro
     ports:
       - "8080:8080"
     depends_on:

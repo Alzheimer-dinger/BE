@@ -8,7 +8,6 @@ spring:
     redis:
       host: ${SPRING_DATA_REDIS_HOST}
       port: ${SPRING_DATA_REDIS_PORT}
-      username: ${REDIS_USERNAME}
       password: ${REDIS_PASSWORD}
     mongodb:
       host: ${SPRING_DATA_MONGODB_HOST}
@@ -57,8 +56,8 @@ jwt:
     expiration: 360000
 
 fcm:
-  firebase_config_path: alzheimerdinger-b9e53-firebase-adminsdk-fbsvc-a52d1783df.json
-  prefix: firebase/
+  firebase_config_path: ${FCM_CONFIG_FILENAME:firebase-config.json}
+  prefix: /app/secret/
 
 springdoc:
   swagger-ui:

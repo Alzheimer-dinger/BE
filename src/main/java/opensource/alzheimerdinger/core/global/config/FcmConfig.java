@@ -10,6 +10,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.io.FileInputStream;
 import java.io.IOException;
 
 @Component
@@ -22,7 +23,7 @@ public class FcmConfig {
     public void init() {
         try {
             GoogleCredentials googleCredentials = GoogleCredentials
-                    .fromStream(new ClassPathResource(fcmProperties.getPrefix() + fcmProperties.getFirebaseConfigPath()).getInputStream());
+                    .fromStream(new FileInputStream(fcmProperties.getPrefix() + fcmProperties.getFirebaseConfigPath()));
 
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(googleCredentials)
@@ -35,8 +36,4 @@ public class FcmConfig {
             throw new RestApiException(null);
         }
     }
-
-    /**
-     *  알림 언제?
-     */
 }
