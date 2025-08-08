@@ -97,6 +97,8 @@ exclude-auth-path-patterns:
       method: POST
     - path-pattern: /actuator/**
       method: GET
+    - path-pattern: /**
+      method: OPTIONS
 
 exclude-blacklist-path-patterns:
   paths:
@@ -118,6 +120,8 @@ exclude-blacklist-path-patterns:
       method: GET
     - path-pattern: /actuator/**
       method: GET
+    - path-pattern: /**
+      method: OPTIONS
 
 
 logging:
@@ -128,10 +132,10 @@ logging:
     org.springframework.batch.core: DEBUG
     org.springframework.jdbc.core: DEBUG
 
-CORS:
-  allowed-origins: "*"
-  allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
-  allowed-headers: "*"
+cors:
+  allowed-origins: "http://localhost:5173"
+  allowed-methods: "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+  allowed-headers: "Authorization,Content-Type,Accept"
   max-age: 3600
 
 management:
