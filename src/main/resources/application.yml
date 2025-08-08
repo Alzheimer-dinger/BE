@@ -133,7 +133,7 @@ logging:
     org.springframework.jdbc.core: DEBUG
 
 cors:
-  allowed-origins: "http://localhost:5173"
+  allowed-origins: "http://localhost:5173,http://localhost:8080,https://api.alzheimerdinger.com"
   allowed-methods: "GET,POST,PUT,PATCH,DELETE,OPTIONS"
   allowed-headers: "Authorization,Content-Type,Accept,X-Requested-With,DNT,User-Agent,If-Modified-Since,Cache-Control,Range"
   max-age: 3600
