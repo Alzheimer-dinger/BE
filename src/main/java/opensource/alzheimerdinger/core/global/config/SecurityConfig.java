@@ -68,7 +68,6 @@ public class SecurityConfig {
                         "/actuator/**",
                         "/favicon.ico"
                 ).permitAll()
-                .requestMatchers("/grafana/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/users/token").hasRole("USER") // 토큰 재발급
                 // Authenticated
                 .anyRequest().authenticated()

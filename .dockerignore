@@ -1,1 +1,3 @@
 /src/main/resources/secret/
+/src/main/resources/firebase/
+/.env
