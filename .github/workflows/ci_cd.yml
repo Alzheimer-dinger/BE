@@ -2,7 +2,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [ develop ] # main
 
 jobs:
   build-and-push:
@@ -54,10 +54,12 @@ jobs:
 
             # repo clone / pull
             if [ ! -d /opt/your-app ]; then
-              git clone --branch main https://github.com/Alzheimer-dinger/BE.git /opt/your-app
+              # git clone --branch main https://github.com/Alzheimer-dinger/BE.git /opt/your-app
+              git clone --branch develop https://github.com/Alzheimer-dinger/BE.git /opt/your-app
             else
               cd /opt/your-app
-              git pull origin main
+              # git pull origin main
+              git pull origin develop
             fi
             
             # 작업 디렉토리 이동
