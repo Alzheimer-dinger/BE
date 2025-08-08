@@ -101,6 +101,12 @@ public class SecurityConfig {
         config.setAllowCredentials(true);
         // pre-flight 캐시 시간 (초)
         config.setMaxAge(corsProperties.getMaxAge());
+        
+        // 필요한 응답 헤더만 노출 (보안상 안전)
+        config.addExposedHeader("Authorization");
+        config.addExposedHeader("Content-Type");
+        config.addExposedHeader("X-Total-Count");
+        config.addExposedHeader("Access-Control-Allow-Origin");
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         // 모든 경로에 대해 위 정책을 적용
