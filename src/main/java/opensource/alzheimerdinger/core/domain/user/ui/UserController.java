@@ -13,7 +13,6 @@ import opensource.alzheimerdinger.core.domain.user.application.dto.request.Updat
 import opensource.alzheimerdinger.core.domain.user.application.dto.response.ProfileResponse;
 import opensource.alzheimerdinger.core.domain.user.application.usecase.UpdateProfileUseCase;
 import opensource.alzheimerdinger.core.domain.user.application.usecase.UserProfileUseCase;
-import opensource.alzheimerdinger.core.domain.user.domain.service.UserProfileService;
 import opensource.alzheimerdinger.core.global.annotation.CurrentUser;
 import opensource.alzheimerdinger.core.global.common.BaseResponse;
 import org.springframework.web.bind.annotation.*;
