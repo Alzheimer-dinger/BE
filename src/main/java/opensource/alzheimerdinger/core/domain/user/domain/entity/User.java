@@ -39,4 +39,11 @@ public class User extends BaseEntity {
     public void updateRole(Role role) {
         this.role = role;
     }
+    public void updateProfile(String name, Gender gender, String encodedNewPassword) {
+        this.name = name;
+        this.gender = gender;
+        if (encodedNewPassword != null && !encodedNewPassword.isBlank()) {
+            this.password = encodedNewPassword;
+        }
+    }
 }
