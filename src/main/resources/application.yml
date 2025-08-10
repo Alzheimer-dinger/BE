@@ -60,10 +60,13 @@ fcm:
   prefix: /app/secret/
 
 springdoc:
+  api-docs:
+    enabled: true
   swagger-ui:
     groups-order: DESC # path, query, body, response 순서대로 출력
     tags-sorter: alpha # 태그를 알파벳 순으로 정렬
     operations-sorter: method # delete - get - patch - post - put 순으로 정렬
+    enabled: true
   paths-to-match:
     - /api/**
 
@@ -135,7 +138,7 @@ logging:
     opensource.alzheimerdinger.core.global.metric: DEBUG
 
 cors:
-  allowed-origins: "http://localhost:5173,http://localhost:8080,https://api.alzheimerdinger.com"
+  allowed-origins: "http://localhost:5173,http://localhost:8080,https://api.alzheimerdinger.com,https://alzheimerdinger.com,https://www.alzheimerdinger.com"
   allowed-methods: "GET,POST,PUT,PATCH,DELETE,OPTIONS"
   allowed-headers: "Authorization,Content-Type,Accept,X-Requested-With,DNT,User-Agent,If-Modified-Since,Cache-Control,Range"
   max-age: 3600
