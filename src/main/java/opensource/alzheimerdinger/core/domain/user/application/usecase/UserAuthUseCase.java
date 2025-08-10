@@ -14,6 +14,7 @@ import opensource.alzheimerdinger.core.domain.user.domain.entity.Role;
 import opensource.alzheimerdinger.core.domain.user.domain.entity.User;
 import opensource.alzheimerdinger.core.domain.user.domain.service.*;
 import opensource.alzheimerdinger.core.global.exception.RestApiException;
+import opensource.alzheimerdinger.core.global.metric.UseCaseMetric;
 import opensource.alzheimerdinger.core.global.security.TokenProvider;
 import opensource.alzheimerdinger.core.global.util.SecureRandomGenerator;
 import org.slf4j.Logger;
@@ -45,6 +46,7 @@ public class UserAuthUseCase {
     private static final Logger log = LoggerFactory.getLogger(UserAuthUseCase.class);
     private final NotificationUseCase notificationUseCase;
 
+    @UseCaseMetric(domain = "user-auth", value = "sign-up", type = "command")
     public void signUp(SignUpRequest request) {
         log.debug("[UserAuth] signUp start: email={}", request.email());
         // 이미 가입된 이메일인지 확인
@@ -74,6 +76,7 @@ public class UserAuthUseCase {
         log.info("[UserAuth] signUp success: userId={}", user.getUserId());
     }
 
+    @UseCaseMetric(domain = "user-auth", value = "login", type = "command")
     public LoginResponse login(LoginRequest request) {
         log.debug("[UserAuth] login start: email={}", request.email());
         // 이메일로 유저 객체 조회
@@ -103,6 +106,7 @@ public class UserAuthUseCase {
         return new LoginResponse(accessToken, refreshToken);
     }
 
+    @UseCaseMetric(domain = "user-auth", value = "logout", type = "command")
     public void logout(HttpServletRequest request) {
         log.debug("[UserAuth] logout start");
         // 회원 정보 조회

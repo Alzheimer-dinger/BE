@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.domain.reminder.application.dto.response.ReminderResponse;
 import opensource.alzheimerdinger.core.domain.reminder.domain.entity.Reminder;
 import opensource.alzheimerdinger.core.domain.reminder.domain.service.ReminderService;
+import opensource.alzheimerdinger.core.global.metric.UseCaseMetric;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +15,7 @@ public class ReminderQueryUseCase {
 
     private final ReminderService reminderService;
 
+    @UseCaseMetric(domain = "reminder", value = "find", type = "query")
     public ReminderResponse find(String userId) {
         Reminder reminder = reminderService.findReminder(userId);
         return new ReminderResponse(reminder.getFireTime(), reminder.getStatus());

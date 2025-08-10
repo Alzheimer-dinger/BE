@@ -6,6 +6,7 @@ import opensource.alzheimerdinger.core.domain.image.domain.service.ImageService;
 import opensource.alzheimerdinger.core.domain.user.application.dto.response.ProfileResponse;
 import opensource.alzheimerdinger.core.domain.user.domain.entity.User;
 import opensource.alzheimerdinger.core.domain.user.domain.service.UserService;
+import opensource.alzheimerdinger.core.global.metric.UseCaseMetric;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,6 +17,7 @@ public class ImageUploadUseCase {
     private final UserService userService;
 
     /** presigned URL 요청 */
+    @UseCaseMetric(domain = "image", value = "request-upload-url", type = "command")
     public UploadUrlResponse requestPostUrl(String userId, String extension) {
         User user = userService.findUser(userId);
         String uploadUrl = imageService.requestUploadUrl(user, extension);
@@ -23,6 +25,7 @@ public class ImageUploadUseCase {
     }
 
     /** fileKey 저장 및 ProfileResponse 반환 */
+    @UseCaseMetric(domain = "image", value = "update-profile-image", type = "command")
     public ProfileResponse updateImage(String userId, String fileKey) {
         User user = userService.findUser(userId);
         String imageUrl = imageService.updateProfileImage(user, fileKey);

@@ -14,6 +14,7 @@ import opensource.alzheimerdinger.core.domain.user.domain.entity.Role;
 import opensource.alzheimerdinger.core.domain.user.domain.entity.User;
 import opensource.alzheimerdinger.core.domain.user.domain.service.UserService;
 import opensource.alzheimerdinger.core.global.exception.RestApiException;
+import opensource.alzheimerdinger.core.global.metric.UseCaseMetric;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -29,77 +30,65 @@ public class RelationManagementUseCase {
 
     private final RelationService relationService;
     private final UserService userService;
-    private final MeterRegistry registry;
     private final NotificationUseCase notificationUseCase;
 
+    @UseCaseMetric(domain = "relation", value = "find", type = "query")
     public List<RelationResponse> findRelations(String userId) {
-        registry.counter("domain_relation_find_requests").increment(); // 호출 횟수
-        return registry.timer("domain_relation_find_duration", "domain", "relation") // 실행 시간
-                .record(() -> relationService.findRelations(userId));
+        return relationService.findRelations(userId);
     }
 
+    @UseCaseMetric(domain = "relation", value = "reply", type = "command")
     public void reply(String userId, String relationId, RelationStatus status) {
-        registry.counter("domain_relation_reply_requests").increment();
-        registry.timer("domain_relation_reply_duration", "domain", "relation")
-                .record(() -> {
-                    Relation relation = relationService.findRelation(relationId);
-                    User user = userService.findUser(userId);
+        Relation relation = relationService.findRelation(relationId);
+        User user = userService.findUser(userId);
 
-                    if (!relation.getRelationStatus().equals(RelationStatus.REQUESTED))
-                        throw new RestApiException(_NOT_FOUND);
-                    if (!relation.isReceiver(user))
-                        throw new RestApiException(_UNAUTHORIZED);
+        if (!RelationStatus.REQUESTED.equals(relation.getRelationStatus()))
+            throw new RestApiException(_NOT_FOUND);
+        if (!relation.isReceiver(user))
+            throw new RestApiException(_UNAUTHORIZED);
 
-                    relation.updateStatus(status);
+        relation.updateStatus(status);
 
-                    if(RelationStatus.ACCEPTED.equals(status))
-                        user.updateRole(GUARDIAN);
+        if (RelationStatus.ACCEPTED.equals(status)) {
+            user.updateRole(GUARDIAN);
+        }
 
-                    notificationUseCase.sendReplyNotification(user, relation, status);
-                });
+        notificationUseCase.sendReplyNotification(user, relation, status);
     }
 
+
+    @UseCaseMetric(domain = "relation", value = "send", type = "command")
     public void send(String userId, RelationConnectRequest req) {
-        registry.counter("domain_relation_send_requests").increment();
-        registry.timer("domain_relation_send_duration", "domain", "relation")
-                .record(() -> {
-                    User guardian = userService.findUser(userId);
-                    User patient  = userService.findUser(req.to());
+        User guardian = userService.findUser(userId);
+        User patient  = userService.findUser(req.to());
 
-                    relationService.save(patient, guardian, RelationStatus.REQUESTED, GUARDIAN);
-                    notificationUseCase.sendRequestNotification(patient, guardian);
-                });
+        relationService.save(patient, guardian, RelationStatus.REQUESTED, GUARDIAN);
+        notificationUseCase.sendRequestNotification(patient, guardian);
     }
 
+    @UseCaseMetric(domain = "relation", value = "resend", type = "command")
     public void resend(String userId, RelationReconnectRequest req) {
-        registry.counter("domain_relation_resend_requests").increment();
-        registry.timer("domain_relation_resend_duration", "domain", "relation")
-                .record(() -> {
-                    Relation relation = relationService.findRelation(req.relationId());
-                    User user = userService.findUser(userId);
+        Relation relation = relationService.findRelation(req.relationId());
+        User user = userService.findUser(userId);
 
-                    if (relation.getRelationStatus() != RelationStatus.DISCONNECTED)
-                        throw new RestApiException(_NOT_FOUND);
-                    if (relation.isMember(user))
-                        throw new RestApiException(_UNAUTHORIZED);
+        if (relation.getRelationStatus() != RelationStatus.DISCONNECTED)
+            throw new RestApiException(_NOT_FOUND);
+        if (relation.isMember(user))
+            throw new RestApiException(_UNAUTHORIZED);
 
-                    relation.resend(userId);
-                    notificationUseCase.sendResendRequestNotification(user, relation);
-                });
+        relation.resend(userId);
+        notificationUseCase.sendResendRequestNotification(user, relation);
     }
 
+    @UseCaseMetric(domain = "relation", value = "disconnect", type = "command")
     public void disconnect(String userId, String relationId) {
-        registry.counter("domain_relation_disconnect_requests").increment();
-        registry.timer("domain_relation_disconnect_duration", "domain", "relation")
-                .record(() -> {
-                    Relation relation = relationService.findRelation(relationId);
-                    User user = userService.findUser(userId);
+        Relation relation = relationService.findRelation(relationId);
+        User user = userService.findUser(userId);
 
-                    if (!relation.isMember(user))
-                        throw new RestApiException(_NOT_FOUND);
+        if (!relation.isMember(user))
+            throw new RestApiException(_NOT_FOUND);
 
-                    relation.updateStatus(RelationStatus.DISCONNECTED);
-                    notificationUseCase.sendDisconnectNotification(user, relation);
-                });
+        relation.updateStatus(RelationStatus.DISCONNECTED);
+        notificationUseCase.sendDisconnectNotification(user, relation);
     }
 }
