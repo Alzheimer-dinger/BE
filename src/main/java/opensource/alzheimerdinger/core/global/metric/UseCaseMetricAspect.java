@@ -4,6 +4,7 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -12,16 +13,19 @@ import org.springframework.stereotype.Component;
 @Aspect
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class UseCaseMetricAspect {
 
     private final MeterRegistry registry;
 
-    @Around("@annotation(anno)")
+    @Around(value = "@within(anno) || @annotation(anno)", argNames = "pjp,anno")
     public Object around(ProceedingJoinPoint pjp, UseCaseMetric anno) throws Throwable {
         final String group   = anno.group();        // ad.usecase
         final String domain  = anno.domain();       // e.g. analysis
         final String usecase = anno.value();        // e.g. get-period
         final String type    = anno.type();         // query | command
+
+        log.debug("UseCaseMetric AOP hit: domain={}, usecase={}, type={}", anno.domain(), anno.value(), anno.type());
 
         // 공통 타이머 (히스토그램 활성화는 yml에서)
         Timer.Builder durationBuilder = Timer.builder(group + ".duration")
