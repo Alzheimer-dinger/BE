@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.domain.user.application.dto.request.UpdateProfileRequest;
 import opensource.alzheimerdinger.core.domain.user.application.dto.response.ProfileResponse;
+import opensource.alzheimerdinger.core.domain.user.application.usecase.UpdateProfileUseCase;
 import opensource.alzheimerdinger.core.domain.user.application.usecase.UserProfileUseCase;
 import opensource.alzheimerdinger.core.domain.user.domain.service.UserProfileService;
 import opensource.alzheimerdinger.core.global.annotation.CurrentUser;
@@ -24,8 +25,8 @@ import org.springframework.web.bind.annotation.*;
 @SecurityRequirement(name = "Bearer Authentication")
 public class UserController {
 
-    private final UserProfileUseCase userProfileUseCase;
-    private final UserProfileService userProfileService;
+    private final UserProfileUseCase userProfileUseCase; // 조회
+    private final UpdateProfileUseCase updateProfileUseCase; // 수정
 
     @Operation(
             summary = "프로필 조회",
@@ -54,7 +55,7 @@ public class UserController {
             @Parameter(hidden = true) @CurrentUser String userId,
             @Valid @RequestBody UpdateProfileRequest request
     ) {
-        ProfileResponse updated = userProfileService.updateProfile(userId, request);
+        ProfileResponse updated = updateProfileUseCase.update(userId, request);
         return BaseResponse.onSuccess(updated);
     }
 }

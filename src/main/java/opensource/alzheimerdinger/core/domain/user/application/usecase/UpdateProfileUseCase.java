@@ -1,11 +1,12 @@
-package opensource.alzheimerdinger.core.domain.user.domain.service;
+package opensource.alzheimerdinger.core.domain.user.application.usecase;
 
 import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.domain.user.application.dto.request.UpdateProfileRequest;
 import opensource.alzheimerdinger.core.domain.user.application.dto.response.ProfileResponse;
 import opensource.alzheimerdinger.core.domain.user.domain.entity.User;
-import opensource.alzheimerdinger.core.domain.user.domain.repository.UserRepository;
+import opensource.alzheimerdinger.core.domain.user.domain.service.UserService;
 import opensource.alzheimerdinger.core.global.exception.RestApiException;
+import opensource.alzheimerdinger.core.global.metric.UseCaseMetric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,39 +17,37 @@ import static opensource.alzheimerdinger.core.global.exception.code.status.Globa
 import static opensource.alzheimerdinger.core.global.exception.code.status.GlobalErrorStatus._UNAUTHORIZED;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
-public class UserProfileService {
-    private static final Logger log = LoggerFactory.getLogger(UserProfileService.class);
-    private final UserRepository userRepository;
+public class UpdateProfileUseCase {
+
+    private static final Logger log = LoggerFactory.getLogger(UpdateProfileUseCase.class);
+
+    private final UserService userService;
     private final PasswordEncoder passwordEncoder;
 
-    @Transactional
-    public ProfileResponse updateProfile(String userId, UpdateProfileRequest req) {
-        log.debug("[UserProfile] updateProfile start: userId={}", userId);
+    @UseCaseMetric(domain = "user-profile", value = "update-profile", type = "command")
+    public ProfileResponse update(String userId, UpdateProfileRequest req) {
+        log.debug("[UpdateProfile] start: userId={}", userId);
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> {
-                    log.warn("[UserProfile] user not found: userId={}", userId);
-                    return new RestApiException(_NOT_FOUND);
-                });
+        User user = userService.findUser(userId);
+        if (user == null) throw new RestApiException(_NOT_FOUND);
 
         String encodedNewPassword = null;
 
-        // 새 비밀번호가 들어온 경우에만 현재 비번 검증 + 해싱
+        // 새 비번 요청이 있는 경우 → 현재 비번 일치 여부 검사 (불일치 시 권한 오류)
         if (req.newPassword() != null && !req.newPassword().isBlank()) {
-            if (req.currentPassword() == null || req.currentPassword().isBlank()
-                    || !passwordEncoder.matches(req.currentPassword(), user.getPassword())) {
-                log.warn("[UserProfile] password change failed: userId={} (current mismatch or empty)", userId);
+            boolean matches = passwordEncoder.matches(req.currentPassword(), user.getPassword());
+            if (!matches) {
+                log.warn("[UpdateProfile] password mismatch: userId={}", userId);
                 throw new RestApiException(_UNAUTHORIZED);
             }
             encodedNewPassword = passwordEncoder.encode(req.newPassword());
         }
 
-        // 엔티티에 값 반영
         user.updateProfile(req.name(), req.gender(), encodedNewPassword);
 
-        // @Transactional + JPA dirty checking으로 자동 반영
-        log.info("[UserProfile] updateProfile success: userId={}", user.getUserId());
+        log.info("[UpdateProfile] success: userId={}", user.getUserId());
         return ProfileResponse.create(user);
     }
 }

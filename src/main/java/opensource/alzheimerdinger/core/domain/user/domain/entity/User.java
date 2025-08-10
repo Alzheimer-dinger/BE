@@ -1,7 +1,6 @@
 package opensource.alzheimerdinger.core.domain.user.domain.entity;
 
 import io.hypersistence.utils.hibernate.id.Tsid;
-import org.springframework.lang.Nullable;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -40,7 +39,7 @@ public class User extends BaseEntity {
     public void updateRole(Role role) {
         this.role = role;
     }
-    public void updateProfile(String name, Gender gender, @Nullable String encodedNewPassword) {
+    public void updateProfile(String name, Gender gender, String encodedNewPassword) {
         this.name = name;
         this.gender = gender;
         if (encodedNewPassword != null && !encodedNewPassword.isBlank()) {
