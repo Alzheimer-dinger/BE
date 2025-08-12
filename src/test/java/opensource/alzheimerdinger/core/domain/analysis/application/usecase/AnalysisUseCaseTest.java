@@ -124,7 +124,7 @@ class AnalysisUseCaseTest {
         AnalysisReport mockReport = mock(AnalysisReport.class);
         when(mockReport.getAnalysisReportId()).thenReturn("report123");
         when(mockReport.getCreatedAt()).thenReturn(LocalDateTime.of(2024, 1, 30, 15, 0));
-        when(mockReport.getReport()).thenReturn("1월 종합 분석 결과입니다.");
+        when(mockReport.getContent()).thenReturn("1월 종합 분석 결과입니다.");
         
         when(analysisService.findLatestReport(userId, periodEnd)).thenReturn(mockReport);
 
@@ -167,7 +167,7 @@ class AnalysisUseCaseTest {
         AnalysisReport mockReport = mock(AnalysisReport.class);
         when(mockReport.getAnalysisReportId()).thenReturn("report123");
         when(mockReport.getCreatedAt()).thenReturn(createdAt);
-        when(mockReport.getReport()).thenReturn("상세 분석 리포트 내용");
+        when(mockReport.getContent()).thenReturn("상세 분석 리포트 내용");
         
         when(analysisService.findLatestReport(userId, periodEnd)).thenReturn(mockReport);
 

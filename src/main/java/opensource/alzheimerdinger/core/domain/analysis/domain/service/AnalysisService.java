@@ -3,15 +3,18 @@ package opensource.alzheimerdinger.core.domain.analysis.domain.service;
 import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.domain.analysis.application.dto.response.AnalysisResponse;
 import opensource.alzheimerdinger.core.domain.analysis.application.dto.response.AnalysisDayResponse;
-import opensource.alzheimerdinger.core.domain.analysis.domain.entity.Analysis;
+import opensource.alzheimerdinger.core.domain.analysis.domain.entity.EmotionAnalysis;
 import opensource.alzheimerdinger.core.domain.analysis.domain.entity.AnalysisReport;
-import opensource.alzheimerdinger.core.domain.analysis.domain.repository.AnalysisRepository;
+import opensource.alzheimerdinger.core.domain.analysis.domain.entity.DementiaAnalysis;
+import opensource.alzheimerdinger.core.domain.analysis.domain.repository.EmotionAnalysisRepository;
+import opensource.alzheimerdinger.core.domain.analysis.domain.repository.DementiaAnalysisRepository;
 import opensource.alzheimerdinger.core.domain.analysis.domain.repository.AnalysisReportRepository;
 import opensource.alzheimerdinger.core.global.exception.RestApiException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.LocalDate;
+import java.util.Map;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,11 +24,12 @@ import static opensource.alzheimerdinger.core.global.exception.code.status.Globa
 @RequiredArgsConstructor
 public class AnalysisService {
 
-    private final AnalysisRepository analysisRepository;
+    private final EmotionAnalysisRepository emotionAnalysisRepository;
+    private final DementiaAnalysisRepository dementiaAnalysisRepository;
     private final AnalysisReportRepository analysisReportRepository;
 
-    public List<Analysis> findAnalysisData(String userId, LocalDateTime start, LocalDateTime end) {
-        return analysisRepository.findByUserAndPeriod(userId, start, end);
+    public List<EmotionAnalysis> findEmotionAnalysisData(String userId, LocalDateTime start, LocalDateTime end) {
+        return emotionAnalysisRepository.findByUserAndPeriod(userId, start, end);
     }
 
     public AnalysisResponse getPeriodData(String userId, LocalDate start, LocalDate end) {
@@ -33,29 +37,54 @@ public class AnalysisService {
         LocalDateTime startDateTime = start.atStartOfDay();
         LocalDateTime endDateTime = end.atTime(23, 59, 59);
         
-        List<Analysis> analyses = findAnalysisData(userId, startDateTime, endDateTime);
+        List<EmotionAnalysis> analyses = findEmotionAnalysisData(userId, startDateTime, endDateTime);
         
         if (analyses.isEmpty()) {
             throw new RestApiException(_NOT_FOUND);
         }
 
+        // 같은 기간의 치매 분석 데이터 조회
+        List<DementiaAnalysis> dementiaAnalyses = dementiaAnalysisRepository.findByUserAndPeriod(userId, startDateTime, endDateTime);
+
         // 평균 위험 점수 계산
-        Double averageRiskScore = analyses.stream()
-                .mapToDouble(Analysis::getRiskScore)
+        Double averageRiskScore = dementiaAnalyses.stream()
+                .mapToDouble(DementiaAnalysis::getRiskScore)
                 .average()
                 .orElse(0.0);
 
+        // 매핑 준비: sessionId -> riskScore, date -> 평균 riskScore
+        Map<String, Double> sessionIdToRisk = dementiaAnalyses.stream()
+                .collect(Collectors.toMap(
+                        DementiaAnalysis::getSessionId,
+                        da -> (double) da.getRiskScore(),
+                        (existing, replacement) -> replacement
+                ));
+
+        Map<LocalDate, Double> dateToAverageRisk = dementiaAnalyses.stream()
+                .collect(Collectors.groupingBy(
+                        da -> da.getCreatedAt().toLocalDate(),
+                        Collectors.averagingDouble(DementiaAnalysis::getRiskScore)
+                ));
+
         // 감정 타임라인 생성
-        List<AnalysisResponse.EmotionDataPoint> emotionTimeline = analyses.stream()
-                .map(analysis -> new AnalysisResponse.EmotionDataPoint(
-                        analysis.getCreatedAt().toLocalDate(),
-                        analysis.getHappy(),
-                        analysis.getSad(),
-                        analysis.getAngry(),
-                        analysis.getSurprised(),
-                        analysis.getBored(),
-                        analysis.getRiskScore()
-                ))
+        List<AnalysisResponse.EmotionDataScore> emotionTimeline = analyses.stream()
+                .map(analysis -> {
+                    LocalDate date = analysis.getCreatedAt().toLocalDate();
+
+                    Double risk = sessionIdToRisk.get(analysis.getSessionId());
+                    if (risk == null) {
+                        risk = dateToAverageRisk.get(date);
+                    }
+                    return new AnalysisResponse.EmotionDataScore(
+                            date,
+                            analysis.getHappy(),
+                            analysis.getSad(),
+                            analysis.getAngry(),
+                            analysis.getSurprised(),
+                            analysis.getBored(),
+                            risk
+                    );
+                })
                 .toList();
 
         return new AnalysisResponse(
@@ -65,7 +94,7 @@ public class AnalysisService {
                 averageRiskScore,
                 emotionTimeline,
                 analyses.size(), // totalParticipate
-                "11분 20초" // averageCallTime
+                "11분 20초" // averageCallTime 임시값으로 지정되어 있는 상황 AI쪽 구현 후 수정 필요
         );
     }
 
@@ -73,13 +102,13 @@ public class AnalysisService {
         LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.atTime(23, 59, 59);
         
-        List<Analysis> dayAnalyses = findAnalysisData(userId, startOfDay, endOfDay);
+        List<EmotionAnalysis> dayAnalyses = findEmotionAnalysisData(userId, startOfDay, endOfDay);
         
         if (dayAnalyses.isEmpty()) {
             throw new RestApiException(_NOT_FOUND);
         }
 
-        Analysis latestAnalysis = dayAnalyses.get(dayAnalyses.size() - 1);
+        EmotionAnalysis latestAnalysis = dayAnalyses.get(dayAnalyses.size() - 1);
         
         //월간 데이터 생성 (달력용 - 해당 월의 모든 일별 요약)
         List<AnalysisDayResponse.EmotionSummary> monthlyData = getMonthlyEmotion(userId, date);
@@ -104,7 +133,7 @@ public class AnalysisService {
         LocalDateTime endOfMonth = date.withDayOfMonth(date.lengthOfMonth()).atTime(23, 59, 59);
         
         // 해당 월의 모든 분석 데이터 조회
-        List<Analysis> monthlyAnalyses = findAnalysisData(userId, startOfMonth, endOfMonth);
+        List<EmotionAnalysis> monthlyAnalyses = findEmotionAnalysisData(userId, startOfMonth, endOfMonth);
         
         // 날짜별로 그룹핑하여 각 날의 대표 감정 계산
         return monthlyAnalyses.stream()
@@ -114,10 +143,10 @@ public class AnalysisService {
                 .entrySet().stream()
                 .map(entry -> {
                     LocalDate dailyDate = entry.getKey();
-                    List<Analysis> dailyAnalyses = entry.getValue();
+                    List<EmotionAnalysis> dailyAnalyses = entry.getValue();
                     
                     // 해당 날의 마지막 분석 데이터에서 주요 감정 추출
-                    Analysis lastAnalysisOfDay = dailyAnalyses.get(dailyAnalyses.size() - 1);
+                    EmotionAnalysis lastAnalysisOfDay = dailyAnalyses.get(dailyAnalyses.size() - 1);
                     String mainEmotion = getMainEmotion(lastAnalysisOfDay);
                     
                     return new AnalysisDayResponse.EmotionSummary(
@@ -135,7 +164,7 @@ public class AnalysisService {
                 .orElseThrow(() -> new RestApiException(_NOT_FOUND));
     }
 
-    private String getMainEmotion(Analysis analysis) {
+    private String getMainEmotion(EmotionAnalysis analysis) {
         double happy = analysis.getHappy();
         double sad = analysis.getSad();
         double angry = analysis.getAngry();
