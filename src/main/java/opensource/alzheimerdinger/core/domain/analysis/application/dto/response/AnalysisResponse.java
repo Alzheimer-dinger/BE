@@ -10,12 +10,12 @@ public record AnalysisResponse(
 
         Double averageRiskScore,
 
-        List<EmotionDataPoint> emotionTimeline,
+        List<EmotionDataScore> emotionTimeline,
         
         Integer totalParticipate,
         String averageCallTime // 임시값으로 지정되어 있는 상황 AI쪽 구현 후 수정 필요
 ) {    
-    public record EmotionDataPoint(
+    public record EmotionDataScore(
             LocalDate date,
 
             Double happyScore,
