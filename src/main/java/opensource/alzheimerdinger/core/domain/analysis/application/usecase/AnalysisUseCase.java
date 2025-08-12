@@ -42,7 +42,7 @@ public class AnalysisUseCase {
                 latestReport.getAnalysisReportId(),
                 userId,
                 latestReport.getCreatedAt().toLocalDate(),
-                latestReport.getReport()
+                latestReport.getContent()
         );
     }
 }
