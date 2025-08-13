@@ -13,6 +13,7 @@ public interface RelationRepository extends JpaRepository<Relation, String> {
 
     @Query("""
         SELECT new opensource.alzheimerdinger.core.domain.relation.application.dto.response.RelationResponse(
+            relation.relationId,
             CASE WHEN :userId = patient.userId THEN guardian.userId ELSE patient.userId END,
             CASE WHEN :userId = patient.userId THEN guardian.name ELSE patient.name END,
             CASE WHEN :userId = patient.userId THEN guardian.patientCode ELSE patient.patientCode END,
