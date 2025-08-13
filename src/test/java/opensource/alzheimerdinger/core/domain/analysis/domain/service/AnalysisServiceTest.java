@@ -93,11 +93,11 @@ class AnalysisServiceTest {
 
         // 위험도 평균을 위해 치매 분석은 간단히 0.2, 0.4로 가정
         var d1 = mock(opensource.alzheimerdinger.core.domain.analysis.domain.entity.DementiaAnalysis.class);
-        when(d1.getRiskScore()).thenReturn(0.2f);
+        when(d1.getRiskScore()).thenReturn(0.2);
         when(d1.getSessionId()).thenReturn("s-1");
         when(d1.getCreatedAt()).thenReturn(LocalDateTime.now());
         var d2 = mock(opensource.alzheimerdinger.core.domain.analysis.domain.entity.DementiaAnalysis.class);
-        when(d2.getRiskScore()).thenReturn(0.4f);
+        when(d2.getRiskScore()).thenReturn(0.4);
         when(d2.getSessionId()).thenReturn("s-9");
         when(d2.getCreatedAt()).thenReturn(LocalDateTime.now());
 
@@ -111,7 +111,7 @@ class AnalysisServiceTest {
         assertThat(result.userId()).isEqualTo(userId);
         assertThat(result.start()).isEqualTo(start);
         assertThat(result.end()).isEqualTo(end);
-        assertThat(result.averageRiskScore()).isEqualTo(0.3); // (0.2 + 0.4) / 2
+        assertThat(result.averageRiskScore()).isCloseTo(0.3, org.assertj.core.api.Assertions.within(1e-6)); // (0.2 + 0.4) / 2
         assertThat(result.emotionTimeline()).hasSize(2);
         assertThat(result.totalParticipate()).isEqualTo(2);
     }

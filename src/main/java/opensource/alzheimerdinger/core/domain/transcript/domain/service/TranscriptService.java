@@ -27,10 +27,6 @@ public class TranscriptService {
     public List<TranscriptListResponse> getList(String userId) {
         List<Transcript> transcripts = transcriptRepository.findByUser(userId);
 
-        if (transcripts.isEmpty()) {
-            throw new RestApiException(_NOT_FOUND);
-        }
-
         ZoneId zoneId = ZoneId.systemDefault();
         return transcripts.stream()
                 .map(t -> new TranscriptListResponse(
