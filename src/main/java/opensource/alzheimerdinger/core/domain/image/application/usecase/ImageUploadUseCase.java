@@ -29,13 +29,6 @@ public class ImageUploadUseCase {
     public ProfileResponse updateImage(String userId, String fileKey) {
         User user = userService.findUser(userId);
         String imageUrl = imageService.updateProfileImage(user, fileKey);
-        ProfileResponse profile = userService.findProfile(userId);
-        return new ProfileResponse(
-                profile.userId(),
-                profile.name(),
-                profile.email(),
-                profile.gender(),
-                imageUrl
-        );
+        return ProfileResponse.create(user, imageUrl);
     }
 }

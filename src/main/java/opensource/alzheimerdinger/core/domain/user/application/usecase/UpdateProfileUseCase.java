@@ -1,6 +1,7 @@
 package opensource.alzheimerdinger.core.domain.user.application.usecase;
 
 import lombok.RequiredArgsConstructor;
+import opensource.alzheimerdinger.core.domain.image.domain.service.ImageService;
 import opensource.alzheimerdinger.core.domain.user.application.dto.request.UpdateProfileRequest;
 import opensource.alzheimerdinger.core.domain.user.application.dto.response.ProfileResponse;
 import opensource.alzheimerdinger.core.domain.user.domain.entity.User;
@@ -25,6 +26,7 @@ public class UpdateProfileUseCase {
 
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
+    private final ImageService imageService;
 
     @UseCaseMetric(domain = "user-profile", value = "update-profile", type = "command")
     public ProfileResponse update(String userId, UpdateProfileRequest req) {
@@ -47,7 +49,9 @@ public class UpdateProfileUseCase {
 
         user.updateProfile(req.name(), req.gender(), encodedNewPassword);
 
+        String profileImageUrl = imageService.getProfileImageUrl(user);
+
         log.info("[UpdateProfile] success: userId={}", user.getUserId());
-        return ProfileResponse.create(user);
+        return ProfileResponse.create(user, profileImageUrl);
     }
 }

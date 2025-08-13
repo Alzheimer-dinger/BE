@@ -1,6 +1,7 @@
 package opensource.alzheimerdinger.core.domain.user.domain.service;
 
 import lombok.RequiredArgsConstructor;
+import opensource.alzheimerdinger.core.domain.image.domain.service.ImageService;
 import opensource.alzheimerdinger.core.domain.user.application.dto.request.SignUpToGuardianRequest;
 import opensource.alzheimerdinger.core.domain.user.application.dto.request.SignUpRequest;
 import opensource.alzheimerdinger.core.domain.user.application.dto.response.ProfileResponse;
@@ -22,6 +23,7 @@ public class UserService {
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ImageService imageService;
 
     public User findByEmail(String email) {
         log.debug("[UserService] findByEmail: email={}", email);
@@ -79,7 +81,10 @@ public class UserService {
     public ProfileResponse findProfile(String userId) {
         log.debug("[UserService] findProfile for userId={}", userId);
         ProfileResponse profile = userRepository.findById(userId)
-                .map(ProfileResponse::create)
+                .map(user -> {
+                    String profileImageUrl = imageService.getProfileImageUrl(user);
+                    return ProfileResponse.create(user, profileImageUrl);
+                })
                 .orElseThrow(() -> {
                     log.warn("[UserService] profile not found for userId={}", userId);
                     return new RestApiException(_NOT_FOUND);
