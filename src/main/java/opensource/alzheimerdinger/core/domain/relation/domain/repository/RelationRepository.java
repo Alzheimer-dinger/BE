@@ -40,5 +40,5 @@ public interface RelationRepository extends JpaRepository<Relation, String> {
 """)
     boolean existsByUsers(@Param("u1") User u1, @Param("u2") User u2);
 
-    Optional<Relation> findByPatientAndGuardian(User patient, User guardian);
+    List<Relation> findByPatientAndGuardian(User patient, User guardian);
 }

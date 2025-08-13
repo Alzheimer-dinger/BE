@@ -66,7 +66,7 @@ public class RelationService {
         return exists;
     }
 
-    public Optional<Relation> findRelation(User patient, User guardian) {
+    public List<Relation> findRelation(User patient, User guardian) {
         return relationRepository.findByPatientAndGuardian(patient, guardian);
     }
 }

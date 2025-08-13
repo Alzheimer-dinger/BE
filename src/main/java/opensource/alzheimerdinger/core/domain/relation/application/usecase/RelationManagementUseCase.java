@@ -61,12 +61,13 @@ public class RelationManagementUseCase {
         User guardian = userService.findUser(userId);
         User patient  = userService.findPatient(req.patientCode());
 
-        relationService.findRelation(patient, guardian).ifPresent(relation -> {
-            if(relation.getRelationStatus() == RelationStatus.ACCEPTED
-                    || relation.getRelationStatus() == RelationStatus.REQUESTED)
+        relationService.findRelation(patient, guardian).forEach(rel -> {
+            if (rel.getRelationStatus() == RelationStatus.ACCEPTED
+                    || rel.getRelationStatus() == RelationStatus.REQUESTED) {
                 throw new RestApiException(_EXIST_ENTITY);
-            else if(relation.getRelationStatus() == RelationStatus.DISCONNECTED)
-                relation.delete();
+            } else if (rel.getRelationStatus() == RelationStatus.DISCONNECTED) {
+                rel.delete();
+            }
         });
 
         relationService.save(patient, guardian, RelationStatus.REQUESTED, GUARDIAN);
