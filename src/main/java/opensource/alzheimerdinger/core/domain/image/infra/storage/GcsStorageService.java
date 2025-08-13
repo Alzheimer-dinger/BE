@@ -32,6 +32,19 @@ public class GcsStorageService implements StorageService {
     }
 
     @Override
+    public String generateUploadUrl(String objectName, String contentType) {
+        BlobInfo blobInfo = BlobInfo.newBuilder(bucketName, objectName).build();
+        URL url = storage.signUrl(
+                blobInfo,
+                30, TimeUnit.MINUTES,
+                Storage.SignUrlOption.httpMethod(HttpMethod.PUT),
+                Storage.SignUrlOption.withV4Signature(),
+                Storage.SignUrlOption.withExtHeaders(java.util.Map.of("Content-Type", contentType))
+        );
+        return url.toString();
+    }
+
+    @Override
     public String getPublicUrl(String objectName) {
         return String.format("https://storage.googleapis.com/%s/%s", bucketName, objectName);
     }
