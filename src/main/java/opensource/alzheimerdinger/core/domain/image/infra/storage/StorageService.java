@@ -7,6 +7,9 @@ public interface StorageService {
      */
     String generateUploadUrl(String objectName);
 
+    // (서명에 Content-Type 포함)
+    String generateUploadUrl(String objectName, String contentType);
+
     /**
      * public 버킷인 경우 파일에 접근할 수 있는 URL
      */

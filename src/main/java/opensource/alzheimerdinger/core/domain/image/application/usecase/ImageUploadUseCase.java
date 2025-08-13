@@ -20,8 +20,9 @@ public class ImageUploadUseCase {
     @UseCaseMetric(domain = "image", value = "request-upload-url", type = "command")
     public UploadUrlResponse requestPostUrl(String userId, String extension) {
         User user = userService.findUser(userId);
-        String uploadUrl = imageService.requestUploadUrl(user, extension);
-        return new UploadUrlResponse(uploadUrl);
+        String fileKey = "images/%s/%s.%s".formatted(user.getUserId(), java.util.UUID.randomUUID(), extension);
+        String uploadUrl = imageService.generateUploadUrl(fileKey);
+        return new UploadUrlResponse(uploadUrl, fileKey);
     }
 
     /** fileKey 저장 및 ProfileResponse 반환 */
@@ -29,7 +30,7 @@ public class ImageUploadUseCase {
     public ProfileResponse updateImage(String userId, String fileKey) {
         User user = userService.findUser(userId);
         String imageUrl = imageService.updateProfileImage(user, fileKey);
-        var profile = userService.findProfile(userId);
+        ProfileResponse profile = userService.findProfile(userId);
         return new ProfileResponse(
                 profile.userId(),
                 profile.name(),
