@@ -48,4 +48,20 @@ public class GcsStorageService implements StorageService {
     public String getPublicUrl(String objectName) {
         return String.format("https://storage.googleapis.com/%s/%s", bucketName, objectName);
     }
+
+    @Override
+    public boolean deleteObject(String objectName) {
+        try {
+            boolean ok = storage.delete(BlobId.of(bucketName, objectName));
+            if (ok) {
+                log.info("[GCS DELETE] deleted object={}", objectName);
+            } else {
+                log.warn("[GCS DELETE] not found object={}", objectName);
+            }
+            return ok;
+        } catch (StorageException e) {
+            log.warn("[GCS DELETE] failed object={} code={} msg={}", objectName, e.getCode(), e.getMessage());
+            return false;
+        }
+    }
 }
