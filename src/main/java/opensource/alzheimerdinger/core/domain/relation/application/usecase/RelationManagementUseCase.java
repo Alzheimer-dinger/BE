@@ -60,7 +60,7 @@ public class RelationManagementUseCase {
     @UseCaseMetric(domain = "relation", value = "send", type = "command")
     public void send(String userId, RelationConnectRequest req) {
         User guardian = userService.findUser(userId);
-        User patient  = userService.findUser(req.to());
+        User patient  = userService.findPatient(req.patientCode());
 
         relationService.save(patient, guardian, RelationStatus.REQUESTED, GUARDIAN);
         notificationUseCase.sendRequestNotification(patient, guardian);
