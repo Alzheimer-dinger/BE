@@ -26,21 +26,14 @@ public class ImageService {
     private String defaultProfileUrl;
 
     /**
-     * presigned URL 생성 (fileKey는 UseCase에서 생성)
+     * presigned URL 반환; User 엔티티는 UseCase에서 조회
      */
     @Transactional(readOnly = true)
-    public String generateUploadUrl(String fileKey) {
+    public String requestUploadUrl(User user, String extension) {
+        String fileKey = String.format("images/%s/%s.%s",
+                user.getUserId(), java.util.UUID.randomUUID(), extension);
         return storageService.generateUploadUrl(fileKey);
     }
-
-    /**
-     * Content-Type을 서명에 포함하는 버전
-     */
-    @Transactional(readOnly = true)
-    public String generateUploadUrl(String fileKey, String contentType) {
-        return storageService.generateUploadUrl(fileKey, contentType);
-    }
-
 
     /**
      * fileKey 저장 및 public URL 반환
