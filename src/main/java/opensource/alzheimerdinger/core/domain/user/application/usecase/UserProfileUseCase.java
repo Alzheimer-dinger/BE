@@ -26,7 +26,8 @@ public class UserProfileUseCase {
                 profileDto.name(),
                 profileDto.email(),
                 profileDto.gender(),
-                imageUrl
+                imageUrl,
+                profileDto.patientCode()
         );
     }
 }
