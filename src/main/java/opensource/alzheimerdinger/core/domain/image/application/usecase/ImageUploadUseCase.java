@@ -29,7 +29,7 @@ public class ImageUploadUseCase {
     public ProfileResponse updateImage(String userId, String fileKey) {
         User user = userService.findUser(userId);
         String imageUrl = imageService.updateProfileImage(user, fileKey);
-        var profile = userService.findProfile(userId);
+        ProfileResponse profile = userService.findProfile(userId);
         return new ProfileResponse(
                 profile.userId(),
                 profile.name(),

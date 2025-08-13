@@ -27,12 +27,41 @@ public class GcsStorageService implements StorageService {
                 Storage.SignUrlOption.httpMethod(HttpMethod.PUT),
                 Storage.SignUrlOption.withV4Signature()
         );
-        log.debug("[Presigned URL 생성] objectName={}, url={}", objectName, url);
+        log.debug("[Presigned PUT URL] objectName={}, url={}", objectName, url);
+        return url.toString();
+    }
+
+    @Override
+    public String generateSignedGetUrl(String objectName, long minutesToLive) {
+        BlobInfo blobInfo = BlobInfo.newBuilder(bucketName, objectName).build();
+        URL url = storage.signUrl(
+                blobInfo,
+                minutesToLive, TimeUnit.MINUTES,
+                Storage.SignUrlOption.httpMethod(HttpMethod.GET),
+                Storage.SignUrlOption.withV4Signature()
+        );
+        log.debug("[Presigned GET URL] object={}, ttlMin={}, url={}", objectName, minutesToLive, url);
         return url.toString();
     }
 
     @Override
     public String getPublicUrl(String objectName) {
         return String.format("https://storage.googleapis.com/%s/%s", bucketName, objectName);
+    }
+
+    @Override
+    public boolean deleteObject(String objectName) {
+        try {
+            boolean ok = storage.delete(BlobId.of(bucketName, objectName));
+            if (ok) {
+                log.info("[GCS DELETE] deleted object={}", objectName);
+            } else {
+                log.warn("[GCS DELETE] not found object={}", objectName);
+            }
+            return ok;
+        } catch (StorageException e) {
+            log.warn("[GCS DELETE] failed object={} code={} msg={}", objectName, e.getCode(), e.getMessage());
+            return false;
+        }
     }
 }
