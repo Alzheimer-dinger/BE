@@ -56,7 +56,7 @@ public class AnalysisService {
         Map<String, Double> sessionIdToRisk = dementiaAnalyses.stream()
                 .collect(Collectors.toMap(
                         DementiaAnalysis::getSessionId,
-                        da -> (double) da.getRiskScore(),
+                        DementiaAnalysis::getRiskScore,
                         (existing, replacement) -> replacement
                 ));
 

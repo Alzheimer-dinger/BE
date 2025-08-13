@@ -28,8 +28,8 @@ public class DementiaAnalysis extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "risk_score", nullable = false, columnDefinition = "float")
-    private float riskScore;
+    @Column(name = "risk_score", nullable = false)
+    private double riskScore;
 }
 
 
