@@ -49,7 +49,7 @@ public class ImageService {
                     .build();
             imageRepo.save(img);
         });
-        return storageService.getPublicUrl(fileKey);
+        return storageService.generateSignedGetUrl(fileKey, 60*24); // 24시간
     }
 
     /**
@@ -59,7 +59,7 @@ public class ImageService {
     public String getProfileImageUrl(User user) {
         return imageRepo.findByUser(user)
                 .map(ProfileImage::getFileKey)
-                .map(storageService::getPublicUrl)
+                .map(key -> storageService.generateSignedGetUrl(key, 60 * 24))
                 .orElse(defaultProfileUrl);
     }
 }

@@ -27,7 +27,20 @@ public class GcsStorageService implements StorageService {
                 Storage.SignUrlOption.httpMethod(HttpMethod.PUT),
                 Storage.SignUrlOption.withV4Signature()
         );
-        log.debug("[Presigned URL 생성] objectName={}, url={}", objectName, url);
+        log.debug("[Presigned PUT URL] objectName={}, url={}", objectName, url);
+        return url.toString();
+    }
+
+    @Override
+    public String generateSignedGetUrl(String objectName, long minutesToLive) {
+        BlobInfo blobInfo = BlobInfo.newBuilder(bucketName, objectName).build();
+        URL url = storage.signUrl(
+                blobInfo,
+                minutesToLive, TimeUnit.MINUTES,
+                Storage.SignUrlOption.httpMethod(HttpMethod.GET),
+                Storage.SignUrlOption.withV4Signature()
+        );
+        log.debug("[Presigned GET URL] object={}, ttlMin={}, url={}", objectName, minutesToLive, url);
         return url.toString();
     }
 
