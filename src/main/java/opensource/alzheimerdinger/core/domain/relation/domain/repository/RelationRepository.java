@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface RelationRepository extends JpaRepository<Relation, String> {
 
@@ -26,6 +27,7 @@ public interface RelationRepository extends JpaRepository<Relation, String> {
         JOIN relation.patient patient
         JOIN relation.guardian guardian
         WHERE patient.userId = :userId OR guardian.userId = :userId
+            AND patient.deletedAt IS NULL
         ORDER BY relation.createdAt DESC
     """)
     List<RelationResponse> findRelation(@Param("userId") String userId);
@@ -37,4 +39,6 @@ public interface RelationRepository extends JpaRepository<Relation, String> {
        OR (r.guardian = :u2 AND r.patient = :u1)
 """)
     boolean existsByUsers(@Param("u1") User u1, @Param("u2") User u2);
+
+    Optional<Relation> findByPatientAndGuardian(User patient, User guardian);
 }

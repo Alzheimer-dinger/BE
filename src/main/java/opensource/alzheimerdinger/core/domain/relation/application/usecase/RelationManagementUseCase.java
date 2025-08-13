@@ -20,8 +20,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 import static opensource.alzheimerdinger.core.domain.user.domain.entity.Role.GUARDIAN;
-import static opensource.alzheimerdinger.core.global.exception.code.status.GlobalErrorStatus._NOT_FOUND;
-import static opensource.alzheimerdinger.core.global.exception.code.status.GlobalErrorStatus._UNAUTHORIZED;
+import static opensource.alzheimerdinger.core.global.exception.code.status.GlobalErrorStatus.*;
 
 @Service
 @Transactional
@@ -61,6 +60,14 @@ public class RelationManagementUseCase {
     public void send(String userId, RelationConnectRequest req) {
         User guardian = userService.findUser(userId);
         User patient  = userService.findPatient(req.patientCode());
+
+        relationService.findRelation(patient, guardian).ifPresent(relation -> {
+            if(relation.getRelationStatus() == RelationStatus.ACCEPTED
+                    || relation.getRelationStatus() == RelationStatus.REQUESTED)
+                throw new RestApiException(_EXIST_ENTITY);
+            else if(relation.getRelationStatus() == RelationStatus.DISCONNECTED)
+                relation.delete();
+        });
 
         relationService.save(patient, guardian, RelationStatus.REQUESTED, GUARDIAN);
         notificationUseCase.sendRequestNotification(patient, guardian);
