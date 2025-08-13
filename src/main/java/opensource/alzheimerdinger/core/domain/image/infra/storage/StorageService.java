@@ -16,4 +16,7 @@ public interface StorageService {
      * public 버킷인 경우 파일에 접근할 수 있는 URL
      */
     String getPublicUrl(String objectName);
+
+    // GCS 객체 삭제
+    boolean deleteObject(String objectName);
 }

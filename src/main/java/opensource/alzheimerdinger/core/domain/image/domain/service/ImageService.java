@@ -10,6 +10,8 @@ import opensource.alzheimerdinger.core.global.exception.RestApiException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.UUID;
 
@@ -40,6 +42,12 @@ public class ImageService {
      */
     @Transactional
     public String updateProfileImage(User user, String fileKey) {
+        // 기존 key 확보
+        String oldKey = imageRepo.findByUser(user)
+                .map(ProfileImage::getFileKey)
+                .orElse(null);
+
+        // DB 업데이트 (있으면 교체, 없으면 생성)
         imageRepo.findByUser(user).ifPresentOrElse(existing -> {
             existing.updateFileKey(fileKey);
         }, () -> {
@@ -49,7 +57,19 @@ public class ImageService {
                     .build();
             imageRepo.save(img);
         });
-        return storageService.generateSignedGetUrl(fileKey, 60*24); // 24시간
+
+        // 커밋 후 이전 Blob 삭제 (최신 1개만 유지)
+        if (oldKey != null && !oldKey.equals(fileKey)) {
+            final String toDelete = oldKey;
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override public void afterCommit() {
+                    storageService.deleteObject(toDelete);
+                }
+            });
+        }
+
+        // 보기용 URL 반환 - 서명 URL 24시간
+        return storageService.generateSignedGetUrl(fileKey, 60 * 24);
     }
 
     /**
