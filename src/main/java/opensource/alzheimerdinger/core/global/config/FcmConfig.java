@@ -21,19 +21,19 @@ public class FcmConfig {
 
     @PostConstruct
     public void init() {
-        try {
-            GoogleCredentials googleCredentials = GoogleCredentials
-                    .fromStream(new FileInputStream(fcmProperties.getPrefix() + fcmProperties.getFirebaseConfigPath()));
-
-            FirebaseOptions options = FirebaseOptions.builder()
-                    .setCredentials(googleCredentials)
-                    .build();
-
-            if(FirebaseApp.getApps().isEmpty()) {
-                FirebaseApp.initializeApp(options);
-            }
-        } catch (IOException e) {
-            throw new RestApiException(null);
-        }
+//        try {
+//            GoogleCredentials googleCredentials = GoogleCredentials
+//                    .fromStream(new FileInputStream(fcmProperties.getPrefix() + fcmProperties.getFirebaseConfigPath()));
+//
+//            FirebaseOptions options = FirebaseOptions.builder()
+//                    .setCredentials(googleCredentials)
+//                    .build();
+//
+//            if(FirebaseApp.getApps().isEmpty()) {
+//                FirebaseApp.initializeApp(options);
+//            }
+//        } catch (IOException e) {
+//            throw new RestApiException(null);
+//        }
     }
 }

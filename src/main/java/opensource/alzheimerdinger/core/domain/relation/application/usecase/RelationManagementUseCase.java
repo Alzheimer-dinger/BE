@@ -3,6 +3,7 @@ package opensource.alzheimerdinger.core.domain.relation.application.usecase;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import opensource.alzheimerdinger.core.domain.notification.usecase.NotificationUseCase;
 import opensource.alzheimerdinger.core.domain.relation.application.dto.request.RelationConnectRequest;
 import opensource.alzheimerdinger.core.domain.relation.application.dto.request.RelationReconnectRequest;
@@ -22,6 +23,7 @@ import java.util.List;
 import static opensource.alzheimerdinger.core.domain.user.domain.entity.Role.GUARDIAN;
 import static opensource.alzheimerdinger.core.global.exception.code.status.GlobalErrorStatus.*;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -59,7 +61,9 @@ public class RelationManagementUseCase {
     @UseCaseMetric(domain = "relation", value = "send", type = "command")
     public void send(String userId, RelationConnectRequest req) {
         User guardian = userService.findUser(userId);
+        log.info("guardian id: " + userId);
         User patient  = userService.findPatient(req.patientCode());
+        log.info("patient code: " + req.patientCode());
 
         relationService.findRelation(patient, guardian).forEach(rel -> {
             if (rel.getRelationStatus() == RelationStatus.ACCEPTED
