@@ -172,7 +172,7 @@ class AnalysisServiceTest {
         assertThat(result.analysisDate()).isEqualTo(date);
         assertThat(result.happyScore()).isEqualTo(0.8);
         assertThat(result.sadScore()).isEqualTo(0.1);
-        assertThat(result.monthlyEmotionData()).isNotNull();
+        assertThat(result.hasData()).isTrue();
     }
 
     @Test

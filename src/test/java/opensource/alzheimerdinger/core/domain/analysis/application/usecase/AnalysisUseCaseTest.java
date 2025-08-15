@@ -81,7 +81,7 @@ class AnalysisUseCaseTest {
         LocalDate date = LocalDate.of(2024, 1, 25);
         
         AnalysisDayResponse expectedResponse = new AnalysisDayResponse(
-                userId, date, 0.8, 0.1, 0.05, 0.03, 0.02, List.of()
+                userId, date, true, 0.8, 0.1, 0.05, 0.03, 0.02
         );
         
         when(analysisService.getDayData(userId, date)).thenReturn(expectedResponse);
@@ -97,22 +97,22 @@ class AnalysisUseCaseTest {
     }
 
     @Test
-    void getAnalysisData_fail_no_Day_data() {
+    void getAnalysisDayData_noData_returns_hasDataFalse() {
         // Given
         String userId = "user123";
         LocalDate date = LocalDate.of(2024, 1, 25);
         
-        when(analysisService.getDayData(userId, date))
-                .thenThrow(new RestApiException(_NOT_FOUND));
+        AnalysisDayResponse noDataResponse = new AnalysisDayResponse(
+                userId, date, false, null, null, null, null, null
+        );
+        when(analysisService.getDayData(userId, date)).thenReturn(noDataResponse);
 
         // When
-        Throwable thrown = catchThrowable(() -> analysisUseCase.getAnalysisDayData(userId, date));
+        AnalysisDayResponse result = analysisUseCase.getAnalysisDayData(userId, date);
 
         // Then
-        assertThat(thrown)
-                .isInstanceOf(RestApiException.class);
-        assertThat(((RestApiException) thrown).getErrorCode())
-                .isEqualTo(_NOT_FOUND.getCode());
+        assertThat(result.hasData()).isFalse();
+        assertThat(result.happyScore()).isNull();
     }
 
     @Test

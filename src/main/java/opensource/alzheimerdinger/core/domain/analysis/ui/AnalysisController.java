@@ -12,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.domain.analysis.application.dto.response.AnalysisResponse;
 import opensource.alzheimerdinger.core.domain.analysis.application.dto.response.AnalysisDayResponse;
 import opensource.alzheimerdinger.core.domain.analysis.application.dto.response.AnalysisReportResponse;
-import opensource.alzheimerdinger.core.domain.analysis.application.dto.response.AnalysisMonthlyResponse;
+import opensource.alzheimerdinger.core.domain.analysis.application.dto.response.AnalysisMonthlyEmotionResponse;
 import opensource.alzheimerdinger.core.domain.analysis.application.usecase.AnalysisUseCase;
 import opensource.alzheimerdinger.core.global.annotation.CurrentUser;
 import opensource.alzheimerdinger.core.global.common.BaseResponse;
@@ -84,15 +84,15 @@ public class AnalysisController {
             },
             responses = {
                     @ApiResponse(responseCode = "200", description = "조회 성공",
-                            content = @Content(schema = @Schema(implementation = AnalysisMonthlyResponse.class))),
+                            content = @Content(schema = @Schema(implementation = AnalysisMonthlyEmotionResponse.class))),
                     @ApiResponse(responseCode = "400", description = "잘못된 날짜 형식", content = @Content)
             }
     )
-    @GetMapping("/month")
-    public BaseResponse<AnalysisMonthlyResponse> getMonthlyAnalysis(
+    @GetMapping("/emotion/monthly")
+    public BaseResponse<AnalysisMonthlyEmotionResponse> getMonthlyEmotionAnalysis(
             @CurrentUser String userId,
             @RequestParam("month") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @NotNull LocalDate month) {
-        return BaseResponse.onSuccess(analysisUseCase.getAnalysisMonthlyData(userId, month));
+        return BaseResponse.onSuccess(analysisUseCase.getAnalysisMonthlyEmotionData(userId, month));
     }
 
     

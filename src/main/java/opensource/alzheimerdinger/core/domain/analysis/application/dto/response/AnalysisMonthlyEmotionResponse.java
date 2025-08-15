@@ -3,7 +3,7 @@ package opensource.alzheimerdinger.core.domain.analysis.application.dto.response
 import java.time.LocalDate;
 import java.util.List;
 
-public record AnalysisMonthlyResponse(
+public record AnalysisMonthlyEmotionResponse(
         String userId,
         LocalDate month,
         List<EmotionSummary> monthlyEmotionData
