@@ -61,9 +61,7 @@ public class RelationManagementUseCase {
     @UseCaseMetric(domain = "relation", value = "send", type = "command")
     public void send(String userId, RelationConnectRequest req) {
         User guardian = userService.findUser(userId);
-        log.info("guardian id: " + userId);
         User patient  = userService.findPatient(req.patientCode());
-        log.info("patient code: " + req.patientCode());
 
         relationService.findRelation(patient, guardian).forEach(rel -> {
             if (rel.getRelationStatus() == RelationStatus.ACCEPTED
