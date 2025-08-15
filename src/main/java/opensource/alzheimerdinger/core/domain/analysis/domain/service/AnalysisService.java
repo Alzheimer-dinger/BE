@@ -10,11 +10,16 @@ import opensource.alzheimerdinger.core.domain.analysis.domain.entity.DementiaAna
 import opensource.alzheimerdinger.core.domain.analysis.domain.repository.EmotionAnalysisRepository;
 import opensource.alzheimerdinger.core.domain.analysis.domain.repository.DementiaAnalysisRepository;
 import opensource.alzheimerdinger.core.domain.analysis.domain.repository.AnalysisReportRepository;
+import opensource.alzheimerdinger.core.domain.transcript.domain.entity.Transcript;
+import opensource.alzheimerdinger.core.domain.transcript.domain.repository.TranscriptRepository;
 import opensource.alzheimerdinger.core.global.exception.RestApiException;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Map;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,6 +33,7 @@ public class AnalysisService {
     private final EmotionAnalysisRepository emotionAnalysisRepository;
     private final DementiaAnalysisRepository dementiaAnalysisRepository;
     private final AnalysisReportRepository analysisReportRepository;
+    private final TranscriptRepository transcriptRepository;
 
     public List<EmotionAnalysis> findEmotionAnalysisData(String userId, LocalDateTime start, LocalDateTime end) {
         return emotionAnalysisRepository.findByUserAndPeriod(userId, start, end);
@@ -88,6 +94,9 @@ public class AnalysisService {
                 })
                 .toList();
 
+        // 기간 내 평균 통화 시간 계산 (Transcript 기반)
+        String averageCallTime = calculateAverageCallTime(userId, startDateTime, endDateTime);
+
         return new AnalysisResponse(
                 userId,
                 start,
@@ -95,7 +104,7 @@ public class AnalysisService {
                 averageRiskScore,
                 emotionTimeline,
                 analyses.size(), // totalParticipate
-                "11분 20초" // averageCallTime 임시값으로 지정되어 있는 상황 AI쪽 구현 후 수정 필요
+                averageCallTime
         );
     }
 
@@ -190,5 +199,53 @@ public class AnalysisService {
         if (maxScore == angry) return "angry";
         if (maxScore == surprised) return "surprised";
         return "bored";
+    }
+
+    private String calculateAverageCallTime(String userId, LocalDateTime startDateTime, LocalDateTime endDateTime) {
+        ZoneId zoneId = ZoneId.systemDefault();
+        Instant startInstant = startDateTime.atZone(zoneId).toInstant();
+        Instant endInstant = endDateTime.atZone(zoneId).toInstant();
+
+        List<Transcript> transcripts = transcriptRepository.findByUserAndPeriod(userId, startInstant, endInstant);
+
+        if (transcripts.isEmpty()) {
+            return formatSecondsToKorean(0);
+        }
+
+        List<Long> durationsInSeconds = transcripts.stream()
+                .filter(t -> t.getStartTime() != null && t.getEndTime() != null)
+                .filter(t -> !t.getEndTime().isBefore(t.getStartTime()))
+                .map(t -> Duration.between(t.getStartTime(), t.getEndTime()).getSeconds())
+                .filter(seconds -> seconds >= 0)
+                .toList();
+
+        if (durationsInSeconds.isEmpty()) {
+            return formatSecondsToKorean(0);
+        }
+
+        double averageSecondsDouble = durationsInSeconds.stream()
+                .mapToLong(Long::longValue)
+                .average()
+                .orElse(0);
+        long averageSeconds = Math.round(averageSecondsDouble);
+        return formatSecondsToKorean(averageSeconds);
+    }
+
+    private String formatSecondsToKorean(long totalSeconds) {
+        if (totalSeconds <= 0) {
+            return "0초";
+        }
+        long hours = totalSeconds / 3600;
+        long remainder = totalSeconds % 3600;
+        long minutes = remainder / 60;
+        long seconds = remainder % 60;
+
+        if (hours > 0) {
+            return String.format("%d시간 %d분 %d초", hours, minutes, seconds);
+        }
+        if (minutes > 0) {
+            return String.format("%d분 %d초", minutes, seconds);
+        }
+        return String.format("%d초", seconds);
     }
 }

@@ -7,6 +7,8 @@ import opensource.alzheimerdinger.core.domain.analysis.domain.entity.AnalysisRep
 import opensource.alzheimerdinger.core.domain.analysis.domain.repository.EmotionAnalysisRepository;
 import opensource.alzheimerdinger.core.domain.analysis.domain.repository.DementiaAnalysisRepository;
 import opensource.alzheimerdinger.core.domain.analysis.domain.repository.AnalysisReportRepository;
+import opensource.alzheimerdinger.core.domain.transcript.domain.entity.Transcript;
+import opensource.alzheimerdinger.core.domain.transcript.domain.repository.TranscriptRepository;
 import opensource.alzheimerdinger.core.global.exception.RestApiException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
 import java.util.List;
@@ -23,7 +26,8 @@ import static opensource.alzheimerdinger.core.global.exception.code.status.Globa
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 import static org.mockito.Mockito.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,6 +41,9 @@ class AnalysisServiceTest {
 
     @Mock
     AnalysisReportRepository analysisReportRepository;
+
+    @Mock
+    TranscriptRepository transcriptRepository;
 
     @InjectMocks
     AnalysisService analysisService;
@@ -103,6 +110,22 @@ class AnalysisServiceTest {
 
         when(dementiaAnalysisRepository.findByUserAndPeriod(eq(userId), any(LocalDateTime.class), any(LocalDateTime.class)))
                 .thenReturn(List.of(d1, d2));
+
+        // Transcript 평균 통화 시간 계산을 위한 목 데이터
+        Transcript t1 = Transcript.builder()
+                .sessionId("s-1")
+                .userId(userId)
+                .startTime(Instant.parse("2024-01-01T00:00:00Z"))
+                .endTime(Instant.parse("2024-01-01T00:02:00Z")) // 120초
+                .build();
+        Transcript t2 = Transcript.builder()
+                .sessionId("s-2")
+                .userId(userId)
+                .startTime(Instant.parse("2024-01-02T00:00:00Z"))
+                .endTime(Instant.parse("2024-01-02T00:01:00Z")) // 60초
+                .build();
+        when(transcriptRepository.findByUserAndPeriod(eq(userId), any(Instant.class), any(Instant.class)))
+                .thenReturn(List.of(t1, t2));
 
         // When
         AnalysisResponse result = analysisService.getPeriodData(userId, start, end);
