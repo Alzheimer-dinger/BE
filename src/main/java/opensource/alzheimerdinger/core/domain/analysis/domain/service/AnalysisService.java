@@ -3,6 +3,7 @@ package opensource.alzheimerdinger.core.domain.analysis.domain.service;
 import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.domain.analysis.application.dto.response.AnalysisResponse;
 import opensource.alzheimerdinger.core.domain.analysis.application.dto.response.AnalysisDayResponse;
+import opensource.alzheimerdinger.core.domain.analysis.application.dto.response.AnalysisMonthlyResponse;
 import opensource.alzheimerdinger.core.domain.analysis.domain.entity.EmotionAnalysis;
 import opensource.alzheimerdinger.core.domain.analysis.domain.entity.AnalysisReport;
 import opensource.alzheimerdinger.core.domain.analysis.domain.entity.DementiaAnalysis;
@@ -105,29 +106,40 @@ public class AnalysisService {
         List<EmotionAnalysis> dayAnalyses = findEmotionAnalysisData(userId, startOfDay, endOfDay);
         
         if (dayAnalyses.isEmpty()) {
-            throw new RestApiException(_NOT_FOUND);
+            return new AnalysisDayResponse(
+                    userId,
+                    date,
+                    false,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+            );
         }
 
         EmotionAnalysis latestAnalysis = dayAnalyses.get(dayAnalyses.size() - 1);
-        
-        //월간 데이터 생성 (달력용 - 해당 월의 모든 일별 요약)
-        List<AnalysisDayResponse.EmotionSummary> monthlyData = getMonthlyEmotion(userId, date);
 
         return new AnalysisDayResponse(
                 userId,
                 date,
+                true,
                 latestAnalysis.getHappy(),
                 latestAnalysis.getSad(),
                 latestAnalysis.getAngry(),
                 latestAnalysis.getSurprised(),
-                latestAnalysis.getBored(),
-                monthlyData
+                latestAnalysis.getBored()
         );
     }
 
-     //달력 UI용 월간 감정 요약 데이터 생성
+    // 달력 UI용 월간 감정 요약 데이터 생성 (데이터가 없어도 빈 리스트로 반환)
+    public AnalysisMonthlyResponse getMonthlyData(String userId, LocalDate date) {
+        List<AnalysisMonthlyResponse.EmotionSummary> monthlyData = getMonthlyEmotion(userId, date);
+        LocalDate normalizedMonth = date.withDayOfMonth(1);
+        return new AnalysisMonthlyResponse(userId, normalizedMonth, monthlyData);
+    }
 
-    private List<AnalysisDayResponse.EmotionSummary> getMonthlyEmotion(String userId, LocalDate date) {
+    private List<AnalysisMonthlyResponse.EmotionSummary> getMonthlyEmotion(String userId, LocalDate date) {
         // 해당 월의 첫날과 마지막날 계산
         LocalDateTime startOfMonth = date.withDayOfMonth(1).atStartOfDay();
         LocalDateTime endOfMonth = date.withDayOfMonth(date.lengthOfMonth()).atTime(23, 59, 59);
@@ -149,7 +161,7 @@ public class AnalysisService {
                     EmotionAnalysis lastAnalysisOfDay = dailyAnalyses.get(dailyAnalyses.size() - 1);
                     String mainEmotion = getMainEmotion(lastAnalysisOfDay);
                     
-                    return new AnalysisDayResponse.EmotionSummary(
+                    return new AnalysisMonthlyResponse.EmotionSummary(
                             dailyDate,
                             mainEmotion
                     );

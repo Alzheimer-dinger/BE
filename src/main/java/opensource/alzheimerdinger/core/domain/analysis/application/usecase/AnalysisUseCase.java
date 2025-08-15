@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.domain.analysis.application.dto.response.AnalysisResponse;
 import opensource.alzheimerdinger.core.domain.analysis.application.dto.response.AnalysisDayResponse;
 import opensource.alzheimerdinger.core.domain.analysis.application.dto.response.AnalysisReportResponse;
+import opensource.alzheimerdinger.core.domain.analysis.application.dto.response.AnalysisMonthlyResponse;
 import opensource.alzheimerdinger.core.domain.analysis.domain.entity.AnalysisReport;
 import opensource.alzheimerdinger.core.domain.analysis.domain.service.AnalysisService;
 import opensource.alzheimerdinger.core.global.metric.UseCaseMetric;
@@ -31,6 +32,12 @@ public class AnalysisUseCase {
     @UseCaseMetric(domain = "analysis", value = "get-day", type = "query")
     public AnalysisDayResponse getAnalysisDayData(String userId, LocalDate date) {
         return analysisService.getDayData(userId, date);
+    }
+
+    // 월간 달력용 데이터 조회
+    @UseCaseMetric(domain = "analysis", value = "get-month", type = "query")
+    public AnalysisMonthlyResponse getAnalysisMonthlyData(String userId, LocalDate date) {
+        return analysisService.getMonthlyData(userId, date);
     }
 
     //기존 분석 리포트 중 가장 최근 리포트 조회
