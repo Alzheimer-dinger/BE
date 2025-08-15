@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import static opensource.alzheimerdinger.core.global.exception.code.status.GlobalErrorStatus._NOT_FOUND;
+import static opensource.alzheimerdinger.core.global.exception.code.status.GlobalErrorStatus.*;
 
 @Service
 @RequiredArgsConstructor
@@ -64,7 +64,7 @@ public class UserService {
         return userRepository.findByPatientCode(code)
                 .orElseThrow(() -> {
                     log.warn("[UserService] patient not found by code={}", code);
-                    return new RestApiException(_NOT_FOUND);
+                    return new RestApiException(PATIENT_NOT_FOUND);
                 });
     }
 
@@ -73,7 +73,7 @@ public class UserService {
         return userRepository.findById(userId)
                 .orElseThrow(() -> {
                     log.warn("[UserService] user not found by userId={}", userId);
-                    return new RestApiException(_NOT_FOUND);
+                    return new RestApiException(USER_NOT_FOUND);
                 });
     }
 
