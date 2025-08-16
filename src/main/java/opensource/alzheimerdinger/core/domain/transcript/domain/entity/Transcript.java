@@ -21,9 +21,11 @@ public class Transcript {
 
     // 세션 ID를 도큐먼트의 기본 키로 사용
 	@Id
+    @Field("session_id")
     private String sessionId;
 
     @Indexed
+    @Field("user_id")
     private String userId;
 
     @Field("start_time")

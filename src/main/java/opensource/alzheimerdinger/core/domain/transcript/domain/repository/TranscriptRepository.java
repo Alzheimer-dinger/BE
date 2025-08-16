@@ -12,10 +12,10 @@ import java.util.Optional;
 @Repository
 public interface TranscriptRepository extends MongoRepository<Transcript, String> {
 
-    @Query(value = "{ 'userId': ?0 }", sort = "{ 'start_time': -1 }")
+    @Query(value = "{ 'user_id': ?0 }", sort = "{ 'start_time': -1 }")
     List<Transcript> findByUser(String userId);
 
-    @Query(value = "{ 'userId': ?0, 'start_time': { $gte: ?1, $lte: ?2 } }", sort = "{ 'start_time': 1 }")
+    @Query(value = "{ 'user_id': ?0, 'start_time': { $gte: ?1, $lte: ?2 } }", sort = "{ 'start_time': 1 }")
     List<Transcript> findByUserAndPeriod(String userId, Instant startInclusive, Instant endInclusive);
 
     Optional<Transcript> findBySessionId(String sessionId);
