@@ -49,16 +49,4 @@ public class User extends BaseEntity {
             this.password = encodedNewPassword;
         }
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        User user = (User) o;
-        return Objects.equals(userId, user.userId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(userId);
-    }
 }
