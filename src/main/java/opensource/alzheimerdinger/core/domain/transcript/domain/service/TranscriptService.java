@@ -31,7 +31,7 @@ public class TranscriptService {
         return transcripts.stream()
                 .map(t -> new TranscriptListResponse(
                         t.getSessionId(),
-                        buildTitle(t),
+                        t.getTitle(),
                         LocalDate.ofInstant(t.getStartTime(), zoneId),
                         LocalTime.ofInstant(t.getStartTime(), zoneId),
                         LocalTime.ofInstant(t.getEndTime(), zoneId),
@@ -41,7 +41,7 @@ public class TranscriptService {
     }
 
     public TranscriptDetailResponse getDetail(String userId, String sessionId) {
-        Transcript transcript = transcriptRepository.findBySessionId(sessionId)
+        Transcript transcript = transcriptRepository.findById(sessionId)
                 .filter(t -> t.getUserId().equals(userId))
                 .orElseThrow(() -> new RestApiException(_NOT_FOUND));
 
@@ -55,7 +55,7 @@ public class TranscriptService {
 
         return new TranscriptDetailResponse(
                 transcript.getSessionId(),
-                buildTitle(transcript),
+                transcript.getTitle(),
                 LocalDate.ofInstant(transcript.getStartTime(), zoneId),
                 LocalTime.ofInstant(transcript.getStartTime(), zoneId),
                 LocalTime.ofInstant(transcript.getEndTime(), zoneId),

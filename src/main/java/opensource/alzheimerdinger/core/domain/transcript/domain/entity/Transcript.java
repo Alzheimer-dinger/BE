@@ -37,6 +37,8 @@ public class Transcript {
     private List<TranscriptMessage> conversation;
 
     private String summary;
+
+    private String title;
 }
 
 
