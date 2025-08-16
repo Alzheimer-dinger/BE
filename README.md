@@ -98,14 +98,14 @@
             <img src="https://avatars.githubusercontent.com/KoungQ" width="100px" alt="김경규 프로필 이미지" /><br />
             <sub><b>김경규</b></sub>
           </a><br />
-          <sub>백엔드<br />인증/인가 · 시스템/인프라 설계</sub>
+          <sub>백엔드<br />도메인 · 인증/인가 <br /> 시스템/인프라 설계</sub>
         </td>
         <td align="center">
           <a href="깃허브주소">
             <img src="https://avatars.githubusercontent.com/ydking0911" width="100px" alt="박영두 프로필 이미지" /><br />
             <sub><b>박영두</b></sub>
           </a><br />
-          <sub>백엔드<br />도메인 · CI/CD · 모니터링</sub>
+          <sub>백엔드<br />도메인 · 인프라 구축 · CI/CD · 모니터링</sub>
         </td>
         <td align="center">
           <a href="깃허브주소">
@@ -337,6 +337,312 @@ chore(ci): bump node to 20.x in workflow
 
 <hr />
 
+<!-- 도메인 예시: user (요약) -->
+<section id="domain-example-user">
+  <h3>🧩 도메인 예시: <code>user</code></h3>
+  <p>
+    아래는 <code>user</code> 도메인의 대표 구성요소를 간단히 요약한 예시입니다.
+    전체 코드는 레포지토리에서 확인하세요.
+  </p>
+
+  <!-- 1) DTO · Request -->
+  <details>
+    <summary><strong>1) DTO · Request</strong></summary>
+
+    // LoginRequest.java
+    public record LoginRequest(
+        @Email @NotBlank String email,
+        @NotBlank String password,
+        @NotNull String fcmToken
+    ) {}
+    
+    // SignUpRequest.java
+    public record SignUpRequest(
+        @NotBlank String name,
+        @Email @NotBlank String email,
+        @NotBlank String password,
+        @NotNull Gender gender,
+        String patientCode
+    ) {}
+    
+    // UpdateProfileRequest.java
+    public record UpdateProfileRequest(
+        @NotBlank String name,
+        @NotNull Gender gender,
+        String currentPassword,
+        String newPassword
+        ) {
+            @AssertTrue(message = "currentPassword is required when newPassword is provided")
+            public boolean isPasswordChangeValid() {
+                if (newPassword == null || newPassword.isBlank()) return true;
+                return currentPassword != null && !currentPassword.isBlank();
+            }
+        }
+    }
+  </details>
+
+  <!-- 2) DTO · Response -->
+  <details>
+    <summary><strong>2) DTO · Response</strong></summary>
+    
+    // LoginResponse.java
+    public record LoginResponse(String accessToken, String refreshToken) {}
+    
+    // ProfileResponse.java
+    public record ProfileResponse(
+        String userId,
+        String name,
+        String email,
+        Gender gender,
+        String imageUrl,
+        String patientCode
+        ) {
+            public static ProfileResponse create(User user, String imageUrl) {
+            return new ProfileResponse(
+            user.getUserId(),
+            user.getName(),
+            user.getEmail(),
+            user.getGender(),
+            imageUrl,
+            user.getPatientCode()
+            );
+        }
+    }
+  </details>
+
+  <!-- 3) Entity -->
+  <details>
+    <summary><strong>3) Entity</strong></summary>
+    
+    // Gender.java
+    public enum Gender { MALE, FEMALE }
+    
+    // Role.java
+    @Getter
+    public enum Role {
+        GUARDIAN("ROLE_GUARDIAN"),
+        PATIENT("ROLE_PATIENT");
+        private final String name;
+        Role(String name) { this.name = name; }
+    }
+    
+    // User.java
+    @Entity
+    @Table(name = "users")
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public class User extends BaseEntity {
+        @Id @Tsid
+        private String userId;
+        private String name;
+        @Column(nullable = false)
+        private String email;
+        @Column(nullable = false)
+        private String password;
+        @Enumerated(EnumType.STRING)
+        @Column(nullable = false)
+        private Role role;
+        private String patientCode;
+        @Enumerated(EnumType.STRING)
+        private Gender gender;
+        
+        public void updateRole(Role role) {
+            this.role = role;
+        }
+        public void updateProfile(String name, Gender gender, String encodedNewPassword) {
+            this.name = name;
+            this.gender = gender;
+            if (encodedNewPassword != null && !encodedNewPassword.isBlank()) {
+                this.password = encodedNewPassword;
+            }
+        }
+    }
+  </details>
+
+  <!-- 4) Repository -->
+  <details>
+    <summary><strong>4) Repository</strong></summary>
+    
+    // UserRepository.java
+    public interface UserRepository extends JpaRepository<User, String> {
+    
+        @Query("select count(u) > 0 from User u where u.email = :email")
+        Boolean existsByEmail(@Param("email") String email);
+    
+        @Query("select u from User u where u.email = :email")
+        Optional<User> findByEmail(@Param("email") String email);
+    
+        @Query("select u from User u where u.patientCode = :patientCode")
+        Optional<User> findByPatientCode(@Param("patientCode") String patientCode);
+    }
+  </details>
+
+  <!-- 5) Service (요약) -->
+  <details>
+    <summary><strong>5) Service (요약)</strong></summary>
+
+    // UserService.java (발췌)
+    @Service
+    @RequiredArgsConstructor
+    public class UserService {
+        private static final Logger log = LoggerFactory.getLogger(UserService.class);
+        private final UserRepository userRepository;
+        private final PasswordEncoder passwordEncoder;
+        private final ImageService imageService;
+    
+        public boolean isAlreadyRegistered(String email) {
+            return userRepository.existsByEmail(email);
+        }
+        
+        public User save(SignUpRequest req, String code) {
+            return userRepository.save(
+            User.builder()
+                .email(req.email())
+                .password(passwordEncoder.encode(req.password()))
+                .role(req.patientCode() == null ? Role.PATIENT : Role.GUARDIAN)
+                .patientCode(code)
+                .gender(req.gender())
+                .name(req.name())
+                .build()
+            );
+        }
+        
+        public ProfileResponse findProfile(String userId) {
+            return userRepository.findById(userId)
+                .map(u -&gt; ProfileResponse.create(u, imageService.getProfileImageUrl(u)))
+                .orElseThrow(() -&gt; new RestApiException(_NOT_FOUND));
+        }
+    }
+  </details>
+
+  <!-- 6) UseCase -->
+  <details>
+    <summary><strong>6) UseCase</strong></summary>
+
+    // UpdateProfileUseCase.java (발췌)
+    @Service
+    @Transactional
+    @RequiredArgsConstructor
+    public class UpdateProfileUseCase {
+        private final UserService userService;
+        private final PasswordEncoder passwordEncoder;
+        private final ImageService imageService;
+    
+        @UseCaseMetric(domain = "user-profile", value = "update-profile", type = "command")
+        public ProfileResponse update(String userId, UpdateProfileRequest req) {
+            User user = userService.findUser(userId);
+            String encodedNewPassword = null;
+            
+            if (req.newPassword() != null && !req.newPassword().isBlank()) {
+                boolean matches = passwordEncoder.matches(req.currentPassword(), user.getPassword());
+                if (!matches) {
+                    log.warn("[UpdateProfile] password mismatch: userId={}", userId);
+                    throw new RestApiException(_UNAUTHORIZED);
+                }
+                encodedNewPassword = passwordEncoder.encode(req.newPassword());
+            }
+        
+            user.updateProfile(req.name(), req.gender(), encodedNewPassword);
+            return ProfileResponse.create(user, imageService.getProfileImageUrl(user));
+        }
+    }
+        
+    // UserAuthUseCase.login(...) (발췌)
+    public LoginResponse login(LoginRequest req) {
+        User user = userService.findByEmail(req.email());
+        if (!passwordEncoder.matches(req.password(), user.getPassword())) {
+            throw new RestApiException(LOGIN_ERROR);
+        }
+        String at = tokenProvider.createAccessToken(user.getUserId(), user.getRole());
+        String rt = tokenProvider.createRefreshToken(user.getUserId(), user.getRole());
+        Duration exp = tokenProvider.getRemainingDuration(rt)
+            .orElseThrow(() -> new RestApiException(EXPIRED_MEMBER_JWT));
+        refreshTokenService.saveRefreshToken(user.getUserId(), rt, exp);
+        fcmTokenService.upsert(user, req.fcmToken());
+        return new LoginResponse(at, rt);
+    }
+  </details>
+
+  <!-- 7) Controller -->
+  <details>
+    <summary><strong>7) Controller</strong></summary>
+
+    // AuthController.java (발췌)
+    @RestController
+    @RequiredArgsConstructor
+    @RequestMapping("/api/users")
+    public class AuthController {
+    
+        private final UserAuthUseCase userAuthUseCase;
+    
+        @PostMapping("/sign-up")
+        public BaseResponse&lt;Void&gt; signUp(@Valid @RequestBody SignUpRequest req) {
+            userAuthUseCase.signUp(req);
+            return BaseResponse.onSuccess();
+        }
+        
+        @PostMapping("/login")
+        public BaseResponse&lt;LoginResponse&gt; login(@Valid @RequestBody LoginRequest req) {
+            return BaseResponse.onSuccess(userAuthUseCase.login(req));
+        }
+        
+        @DeleteMapping("/logout")
+        public BaseResponse&lt;Void&gt; logout(HttpServletRequest request) {
+            userAuthUseCase.logout(request);
+            return BaseResponse.onSuccess();
+        }
+    }
+    
+    // UserController.java (발췌)
+    @RestController
+    @RequiredArgsConstructor
+    @RequestMapping("/api/users")
+    @SecurityRequirement(name = "Bearer Authentication")
+    public class UserController {
+    
+        private final UserProfileUseCase userProfileUseCase;
+        private final UpdateProfileUseCase updateProfileUseCase;
+        
+        @GetMapping("/profile")
+        public BaseResponse<ProfileResponse> getProfile(@CurrentUser String userId) {
+            return BaseResponse.onSuccess(userProfileUseCase.findProfile(userId));
+        }
+        
+        @PatchMapping("/profile")
+        public BaseResponse<ProfileResponse> updateProfile(
+            @CurrentUser String userId,
+            @Valid @RequestBody UpdateProfileRequest req
+        ) {
+            return BaseResponse.onSuccess(updateProfileUseCase.update(userId, req));
+        }
+    }
+    
+    // TokenController.java (발췌)
+    @RestController
+    @RequiredArgsConstructor
+    @RequestMapping("/api/token")
+    @SecurityRequirement(name = "Bearer Authentication")
+    public class TokenController {
+    
+        private final TokenReissueService tokenReissueService;
+        
+        @PostMapping
+        public BaseResponse<TokenReissueResponse> reissue(
+            @RefreshToken String refreshToken,
+            @CurrentUser String userId
+        ) {
+            return BaseResponse.onSuccess(tokenReissueService.reissue(refreshToken, userId));
+        }
+    }
+  </details>
+
+  <p align="right"><a href="#repository">↑ 프로젝트 구조로 돌아가기</a></p>
+</section>
+
+<hr />
+
 <!-- 개발 기간 · 작업 관리 -->
 <section id="schedule">
   <h2>🗓️ 개발 기간 &nbsp;·&nbsp; 작업 관리</h2>
@@ -385,18 +691,70 @@ chore(ci): bump node to 20.x in workflow
 
 <hr />
 
-<!-- 신경 쓴 부분 -->
+<!-- 핵심 기능 구현 내용 -->
 <section id="quality-notes">
-  <h2>🔧 신경 쓴 부분</h2>
+  <h2>🧠 핵심 기능 구현 내용</h2>
 
+  <!-- 1) 실시간 AI 기반 통화 -->
+<h3>1) 실시간 AI 기반 통화 제공</h3>
+  <p>
+    환자와 AI가 음성으로 대화하고, 실시간 자막을 제공하는 통화 기능을 구현했습니다.
+    통화 전/중/후 상태를 명확히 분리하고, 오디오 스트림 처리와 스트리밍 응답을 안정적으로 연결합니다.
+  </p>
+
+<h4>① UI 흐름</h4>
+  <p><code>CallWaiting</code> → <code>CallActive</code> → <code>CallEnd</code> (종료 후 요약/저장)</p>
   <ul>
-    <li><strong>접근성/UX</strong>: 시맨틱 마크업, ARIA 라벨, 키보드 포커스(모달/토스트), 고대비/폰트 크기 대응</li>
-    <li><strong>성능</strong>: 이미지 압축/지연로딩, 코드 스플리팅, 캐시 헤더, Recharts 렌더 최적화, PWA 오프라인 폴백</li>
-    <li><strong>보안</strong>: JWT 액세스/리프레시 분리·로테이션, CORS 엄격화, HTTPS, BCrypt 해시, 헤더 보안(XFO/XCTO)</li>
-    <li><strong>신뢰성</strong>: API 재시도·백오프, 카프카 비동기 처리, 타임아웃/서킷브레이커(중요 호출부)</li>
-    <li><strong>관측</strong>: Micrometer 태깅(유저/엔드포인트/상태), Grafana 알림 룰, 상관관계 ID로 로그 추적</li>
-    <li><strong>데이터 보호</strong>: PII 최소화, 역할/권한 분리(GUARDIAN/PATIENT), Presigned URL로 업로드 경로 제한</li>
-    <li><strong>테스트</strong>: 단위/통합/계약 테스트, Swagger + Postman 시나리오, 스테이징 연기 테스트</li>
+    <li><strong>CallWaiting</strong>: 장치/권한 체크(마이크), 서버 연결 준비, 상태 표시</li>
+    <li><strong>CallActive</strong>: 실시간 자막(부분/최종), 발화/응답 타임라인, 음소거/종료 버튼</li>
+    <li><strong>CallEnd</strong>: 통화 요약 노출, 저장/이탈 동작 분기</li>
+  </ul>
+
+<h4>② 오디오 처리</h4>
+  <ul>
+    <li><code>useAudioStream</code> 훅으로 <em>발화 감지(VAD)</em> 및 마이크 스트림 수집</li>
+    <li><code>WebAudio</code> / <code>MediaDevices</code> API 사용, 입력 레벨 모니터링 및 일시정지/재개</li>
+    <li>샘플레이트/채널 정규화 → 네트워크 전송 포맷으로 인코딩(스트리밍)</li>
+  </ul>
+
+<h4>③ 실시간 연결</h4>
+  <ul>
+    <li><strong>WebSocket 기반 양방향 스트리밍</strong>: 오디오 업스트림, 자막/오디오 다운스트림</li>
+    <li><strong>부분/최종 자막</strong> 구분 렌더링(부분 갱신 → 최종 확정)</li>
+    <li><strong>연결 신뢰성</strong>: 핑/퐁 헬스체크, 지수적 재시도, 일시 네트워크 단절 복구</li>
+    <li><strong>에러/예외 처리</strong>: 인증 오류, 장치 접근 실패, 모델 과부하 시 사용자 가이드</li>
+    <li><strong>리소스 정리</strong>: 트랙 stop, 소켓 close, 메모리 해제(종료/이탈 시)</li>
+  </ul>
+
+  <hr />
+
+  <!-- 2) 사용자 맞춤형 통합 보고서 -->
+<h3>2) 사용자 맞춤형 통합 보고서</h3>
+  <p>
+    일간/기간 종합 관점에서 감정 및 이용 지표를 시각화합니다. 날짜/기간 선택에 따라 API 파라미터를 구성하고,
+    전처리된 데이터로 그래프/지표 컴포넌트를 렌더링합니다.
+  </p>
+
+<h4>① 일간(DailySection)</h4>
+  <ul>
+    <li><strong>날짜 선택 + 월간 이모지 캘린더</strong>로 하루 흐름 빠른 탐색</li>
+    <li><strong>감정 계산 로직</strong>: 대화 로그 기반 점수 산출(행복/슬픔/분노/놀람/권태 등)</li>
+    <li><strong>원형 스코어</strong> 게이지로 당일 상태를 직관적으로 표현</li>
+  </ul>
+
+<h4>② 종합(TotalSection)</h4>
+  <ul>
+    <li><strong>기간 선택</strong>: 1주 / 1달 / 사용자 지정 범위</li>
+    <li><strong>감정 타임라인</strong>: 날짜별 점수 추세(Recharts 라인/에어리어 차트)</li>
+    <li><strong>참여도/평균 통화시간/위험도</strong> 계산 및 카드 지표로 요약</li>
+    <li><strong>EndDate 기준 종합 보고서</strong>: 선택 범위의 말일을 기준으로 요약 문구/지표 확정</li>
+  </ul>
+
+<h4>③ 데이터 흐름(요약)</h4>
+  <ul>
+    <li><strong>통화 중</strong>: 마이크 권한 → 오디오 스트림(WebSocket) 전송 → AI 응답(오디오/자막) 수신</li>
+    <li><strong>통화 후</strong>: 세션 요약/대화 로그 서버 기록 → 분석 API가 집계/리포트 생성</li>
+    <li><strong>리포트 조회</strong>: 사용자/연결 대상 식별 → 쿼리 파라미터 구성 → 일간/종합 API 호출 → 시각화</li>
   </ul>
 </section>
 
@@ -424,10 +782,10 @@ chore(ci): bump node to 20.x in workflow
   </details>
 
   <details>
-    <summary><strong>프로필(내/타 유저)</strong></summary>
+    <summary><strong>프로필</strong></summary>
     <ul>
       <li>내 프로필: 이미지/이름/성별/비밀번호 수정, 판매 영역은 미사용</li>
-      <li>타 유저: 팔로우 개념 대신 <em>관계(보호자-환자)</em> 상태 표시</li>
+      <li><em>관계(보호자-환자)</em> 상태 표시</li>
     </ul>
   </details>
 
