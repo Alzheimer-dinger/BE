@@ -32,7 +32,6 @@ public class Relation extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private RelationStatus relationStatus;
 
-    @Enumerated(EnumType.STRING)
     private String initiator;
 
     public boolean isReceiver(User user) {
