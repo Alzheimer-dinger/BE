@@ -99,7 +99,7 @@ public class RelationManagementUseCase {
         User user = userService.findUser(userId);
 
         if (!relation.isMember(user))
-            throw new RestApiException(_NOT_FOUND);
+            throw new RestApiException(NO_PERMISSION_ON_RELATION);
 
         relation.updateStatus(RelationStatus.DISCONNECTED);
         notificationUseCase.sendDisconnectNotification(user, relation);

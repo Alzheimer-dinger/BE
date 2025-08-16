@@ -132,8 +132,6 @@ logging:
     org.springframework.security: DEBUG
     org.apache.kafka: WARN
     org.springframework.kafka: INFO
-    org.springframework.batch.core: DEBUG
-    org.springframework.jdbc.core: DEBUG
     org.springframework.aop: DEBUG
     opensource.alzheimerdinger.core.global.metric: DEBUG
 
