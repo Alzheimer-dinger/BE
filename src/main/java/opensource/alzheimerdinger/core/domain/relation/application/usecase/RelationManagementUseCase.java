@@ -70,7 +70,7 @@ public class RelationManagementUseCase {
                 throw new RestApiException(_EXIST_ENTITY);
         });
 
-        relationService.upsert(patient, guardian, RelationStatus.REQUESTED, GUARDIAN);
+        relationService.upsert(patient, guardian, RelationStatus.REQUESTED, guardian.getRole());
         notificationUseCase.sendRequestNotification(patient, guardian);
     }
 
