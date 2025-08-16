@@ -13,6 +13,8 @@ import javax.annotation.PostConstruct;
 import java.io.FileInputStream;
 import java.io.IOException;
 
+import static opensource.alzheimerdinger.core.global.exception.code.status.GlobalErrorStatus.FIREBASE_DISCONNECTED;
+
 @Component
 @RequiredArgsConstructor
 public class FcmConfig {
@@ -33,7 +35,7 @@ public class FcmConfig {
                 FirebaseApp.initializeApp(options);
             }
         } catch (IOException e) {
-            throw new RestApiException(null);
+            throw new RestApiException(FIREBASE_DISCONNECTED);
         }
     }
 }

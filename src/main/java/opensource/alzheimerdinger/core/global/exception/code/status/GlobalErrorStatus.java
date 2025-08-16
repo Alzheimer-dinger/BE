@@ -32,6 +32,7 @@ public enum GlobalErrorStatus implements BaseCodeInterface {
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER404", "요청한 정보를 찾을 수 없습니다."),
     PATIENT_NOT_FOUND(HttpStatus.NOT_FOUND, "PATIENT404", "요청한 정보를 찾을 수 없습니다."),
     FCM_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "FCM404", "요청한 정보를 찾을 수 없습니다."),
+    INVALID_SELF_RELATION(HttpStatus.BAD_REQUEST, "RELATION001", "자신에게 요청을 보낼 수 없습니다."),
 
     // For test
     TEMP_EXCEPTION(HttpStatus.BAD_REQUEST, "TEMP4001", "예외처리 테스트입니다."),

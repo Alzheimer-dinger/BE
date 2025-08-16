@@ -63,6 +63,9 @@ public class RelationManagementUseCase {
         User guardian = userService.findUser(userId);
         User patient  = userService.findPatient(req.patientCode());
 
+        if(guardian.equals(patient))
+            throw new RestApiException(INVALID_SELF_RELATION);
+
         relationService.findRelation(patient, guardian).forEach(rel -> {
             if (rel.getRelationStatus() == RelationStatus.ACCEPTED
                     || rel.getRelationStatus() == RelationStatus.REQUESTED) {

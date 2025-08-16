@@ -7,6 +7,8 @@ import opensource.alzheimerdinger.core.domain.user.domain.entity.User;
 import opensource.alzheimerdinger.core.global.exception.RestApiException;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 import static opensource.alzheimerdinger.core.global.exception.code.status.GlobalErrorStatus.FCM_TOKEN_NOT_FOUND;
 import static opensource.alzheimerdinger.core.global.exception.code.status.GlobalErrorStatus._NOT_FOUND;
 
@@ -31,8 +33,7 @@ public class FcmTokenService {
         fcmTokenRepository.expire(userId);
     }
 
-    public String findByUser(User user) {
-        return fcmTokenRepository.findTokenByUser(user)
-                .orElseThrow(() -> new RestApiException(FCM_TOKEN_NOT_FOUND));
+    public Optional<String> findByUser(User user) {
+        return fcmTokenRepository.findTokenByUser(user);
     }
 }
