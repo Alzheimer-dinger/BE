@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 
 public record RelationResponse(
         String relationId,
+        String userId,
         String name,
         String patientCode,
         Role relationType,

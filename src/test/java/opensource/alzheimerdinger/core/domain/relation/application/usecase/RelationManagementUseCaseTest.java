@@ -126,7 +126,7 @@ class RelationManagementUseCaseTest {
 
         relationManagementUseCase.send(guardianId, req);
 
-        verify(relationService).save(patient, guardian, RelationStatus.REQUESTED, Role.GUARDIAN);
+        verify(relationService).upsert(patient, guardian, RelationStatus.REQUESTED, Role.GUARDIAN);
         verify(notificationUseCase).sendRequestNotification(patient, guardian);
     }
 

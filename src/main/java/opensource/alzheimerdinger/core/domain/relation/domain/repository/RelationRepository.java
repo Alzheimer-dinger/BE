@@ -15,6 +15,7 @@ public interface RelationRepository extends JpaRepository<Relation, String> {
     @Query("""
         SELECT new opensource.alzheimerdinger.core.domain.relation.application.dto.response.RelationResponse(
             relation.relationId,
+            CASE WHEN :userId = patient.userId THEN guardian.userId ELSE patient.userId END,
             CASE WHEN :userId = patient.userId THEN guardian.name ELSE patient.name END,
             CASE WHEN :userId = patient.userId THEN guardian.patientCode ELSE patient.patientCode END,
             CASE WHEN :userId = patient.userId THEN opensource.alzheimerdinger.core.domain.user.domain.entity.Role.GUARDIAN
@@ -40,5 +41,5 @@ public interface RelationRepository extends JpaRepository<Relation, String> {
 """)
     boolean existsByUsers(@Param("u1") User u1, @Param("u2") User u2);
 
-    List<Relation> findByPatientAndGuardian(User patient, User guardian);
+    Optional<Relation> findByPatientAndGuardian(User patient, User guardian);
 }

@@ -60,4 +60,9 @@ public class Relation extends BaseEntity {
         else
             this.initiator = Role.GUARDIAN;
     }
+
+    public void update(RelationStatus status, Role initiator) {
+        this.relationStatus = status;
+        this.initiator = initiator;
+    }
 }

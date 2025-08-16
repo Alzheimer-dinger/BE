@@ -1,6 +1,5 @@
 package opensource.alzheimerdinger.core.domain.relation.domain.service;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.domain.relation.application.dto.response.RelationResponse;
 import opensource.alzheimerdinger.core.domain.relation.domain.entity.Relation;
@@ -8,14 +7,12 @@ import opensource.alzheimerdinger.core.domain.relation.domain.entity.RelationSta
 import opensource.alzheimerdinger.core.domain.user.domain.entity.Role;
 import opensource.alzheimerdinger.core.domain.user.domain.entity.User;
 import opensource.alzheimerdinger.core.domain.relation.domain.repository.RelationRepository;
-import opensource.alzheimerdinger.core.domain.user.domain.service.UserService;
 import opensource.alzheimerdinger.core.global.exception.RestApiException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 import static opensource.alzheimerdinger.core.global.exception.code.status.GlobalErrorStatus._NOT_FOUND;
 
@@ -25,16 +22,22 @@ public class RelationService {
     private static final Logger log = LoggerFactory.getLogger(RelationService.class);
     private final RelationRepository relationRepository;
 
-    public Relation save(User patient, User guardian, RelationStatus status, Role initiator) {
+    public Relation upsert(User patient, User guardian, RelationStatus status, Role initiator) {
         log.debug("[RelationService] creating relation: patientId={} guardianId={} initiator={}",
                 patient.getUserId(), guardian.getUserId(), initiator);
 
-        Relation relation = Relation.builder()
-                .patient(patient)
-                .guardian(guardian)
-                .relationStatus(status)
-                .initiator(initiator)
-                .build();
+        Relation relation = relationRepository.findByPatientAndGuardian(patient, guardian)
+                .map(r -> {
+                    r.update(status, initiator);
+                    return r;
+                })
+                .orElseGet(() -> Relation.builder()
+                        .patient(patient)
+                        .guardian(guardian)
+                        .relationStatus(status)
+                        .initiator(initiator)
+                        .build());
+
 
         Relation saved = relationRepository.save(relation);
         log.info("[RelationService] relation created: relationId={}", saved.getRelationId());
@@ -64,9 +67,5 @@ public class RelationService {
         log.debug("[RelationService] existsByGuardianAndPatient guardianId={} patientId={} => {}",
                 guardian.getUserId(), patient.getUserId(), exists);
         return exists;
-    }
-
-    public List<Relation> findRelation(User patient, User guardian) {
-        return relationRepository.findByPatientAndGuardian(patient, guardian);
     }
 }

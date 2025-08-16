@@ -1,6 +1,5 @@
 package opensource.alzheimerdinger.core.domain.relation.application.usecase;
 
-import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +10,6 @@ import opensource.alzheimerdinger.core.domain.relation.application.dto.response.
 import opensource.alzheimerdinger.core.domain.relation.domain.entity.Relation;
 import opensource.alzheimerdinger.core.domain.relation.domain.entity.RelationStatus;
 import opensource.alzheimerdinger.core.domain.relation.domain.service.RelationService;
-import opensource.alzheimerdinger.core.domain.user.domain.entity.Role;
 import opensource.alzheimerdinger.core.domain.user.domain.entity.User;
 import opensource.alzheimerdinger.core.domain.user.domain.service.UserService;
 import opensource.alzheimerdinger.core.global.exception.RestApiException;
@@ -66,16 +64,16 @@ public class RelationManagementUseCase {
         if(guardian.equals(patient))
             throw new RestApiException(INVALID_SELF_RELATION);
 
-        relationService.findRelation(patient, guardian).forEach(rel -> {
-            if (rel.getRelationStatus() == RelationStatus.ACCEPTED
-                    || rel.getRelationStatus() == RelationStatus.REQUESTED) {
-                throw new RestApiException(_EXIST_ENTITY);
-            } else if (rel.getRelationStatus() == RelationStatus.DISCONNECTED) {
-                rel.delete();
-            }
-        });
+//        relationService.findRelation(patient, guardian).forEach(rel -> {
+//            if (rel.getRelationStatus() == RelationStatus.ACCEPTED
+//                    || rel.getRelationStatus() == RelationStatus.REQUESTED) {
+//                throw new RestApiException(_EXIST_ENTITY);
+//            } else if (rel.getRelationStatus() == RelationStatus.DISCONNECTED) {
+//                rel.delete();
+//            }
+//        });
 
-        relationService.save(patient, guardian, RelationStatus.REQUESTED, GUARDIAN);
+        relationService.upsert(patient, guardian, RelationStatus.REQUESTED, GUARDIAN);
         notificationUseCase.sendRequestNotification(patient, guardian);
     }
 

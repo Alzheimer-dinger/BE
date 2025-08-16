@@ -16,11 +16,6 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
 
     public String sendNotification(String token, String title, String body, String userId) {
-        com.google.firebase.messaging.Notification fcmNotification = com.google.firebase.messaging.Notification.builder()
-                .setTitle(title)
-                .setBody(body)
-                .build();
-
         WebpushConfig webPush = WebpushConfig.builder()
                 .putHeader("TTL", "86400")
                 .setNotification(new WebpushNotification(
