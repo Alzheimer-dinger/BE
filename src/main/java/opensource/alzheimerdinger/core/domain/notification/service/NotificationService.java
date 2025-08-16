@@ -33,7 +33,6 @@ public class NotificationService {
 
         Message message = Message.builder()
                 .setToken(token)
-                .setNotification(fcmNotification)
                 .setWebpushConfig(webPush)
                 .build();
 
