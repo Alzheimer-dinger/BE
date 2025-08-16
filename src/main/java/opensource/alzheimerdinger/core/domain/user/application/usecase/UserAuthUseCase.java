@@ -68,7 +68,7 @@ public class UserAuthUseCase {
                 throw new RestApiException(_NOT_FOUND);
             }
 
-            relationService.upsert(patient, user, RelationStatus.REQUESTED, Role.GUARDIAN);
+            relationService.upsert(patient, user, RelationStatus.REQUESTED);
             notificationUseCase.sendRequestNotification(patient, user);
             log.debug("[UserAuth] relation created: guardianId={}, patientId={}", user.getUserId(), patient.getUserId());
         }

@@ -58,20 +58,20 @@ public class RelationManagementUseCase {
 
     @UseCaseMetric(domain = "relation", value = "send", type = "command")
     public void send(String userId, RelationConnectRequest req) {
-        User guardian = userService.findUser(userId);
-        User patient  = userService.findPatient(req.patientCode());
+        User from = userService.findUser(userId);
+        User to  = userService.findPatient(req.patientCode());
 
-        if(guardian.equals(patient))
+        if(from.equals(to))
             throw new RestApiException(INVALID_SELF_RELATION);
 
-        relationService.findRelation(patient, guardian).ifPresent(relation -> {
+        relationService.findRelation(to, from).ifPresent(relation -> {
             if(RelationStatus.ACCEPTED.equals(relation.getRelationStatus())
                     || RelationStatus.REQUESTED.equals(relation.getRelationStatus()))
                 throw new RestApiException(_EXIST_ENTITY);
         });
 
-        relationService.upsert(patient, guardian, RelationStatus.REQUESTED, guardian.getRole());
-        notificationUseCase.sendRequestNotification(patient, guardian);
+        relationService.upsert(to, from, RelationStatus.REQUESTED);
+        notificationUseCase.sendRequestNotification(to, from);
     }
 
     @UseCaseMetric(domain = "relation", value = "resend", type = "command")

@@ -33,11 +33,11 @@ public class Relation extends BaseEntity {
     private RelationStatus relationStatus;
 
     @Enumerated(EnumType.STRING)
-    private Role initiator;
+    private String initiator;
 
     public boolean isReceiver(User user) {
-        return initiator == Role.PATIENT && guardian.equals(user)
-                || initiator == Role.GUARDIAN && patient.equals(user);
+        return this.initiator.equals(this.patient.getUserId()) && guardian.equals(user)
+                || initiator.equals(this.guardian.getUserId()) && patient.equals(user);
     }
 
     public void updateStatus(RelationStatus status) {
@@ -54,10 +54,10 @@ public class Relation extends BaseEntity {
 
     public void resend() {
         this.relationStatus = RelationStatus.REQUESTED;
-        this.initiator = Role.PATIENT;
+        this.initiator = this.patient.getUserId();
     }
 
-    public void update(RelationStatus status, Role initiator) {
+    public void update(RelationStatus status, String initiator) {
         this.relationStatus = status;
         this.initiator = initiator;
     }

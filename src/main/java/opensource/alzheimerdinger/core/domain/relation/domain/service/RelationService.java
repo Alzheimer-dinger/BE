@@ -23,18 +23,20 @@ public class RelationService {
     private static final Logger log = LoggerFactory.getLogger(RelationService.class);
     private final RelationRepository relationRepository;
 
-    public Relation upsert(User patient, User guardian, RelationStatus status, Role initiator) {
-        log.debug("[RelationService] creating relation: patientId={} guardianId={} initiator={}",
-                patient.getUserId(), guardian.getUserId(), initiator);
+    public Relation upsert(User to, User from, RelationStatus status) {
+        String initiator = from.getUserId();
 
-        Relation relation = relationRepository.findByPatientAndGuardian(patient, guardian)
+        log.debug("[RelationService] creating relation: patientId={} guardianId={} initiator={}",
+                to.getUserId(), from.getUserId(), initiator);
+
+        Relation relation = relationRepository.findByPatientAndGuardian(to, from)
                 .map(r -> {
                     r.update(status, initiator);
                     return r;
                 })
                 .orElseGet(() -> Relation.builder()
-                        .patient(patient)
-                        .guardian(guardian)
+                        .patient(to)
+                        .guardian(from)
                         .relationStatus(status)
                         .initiator(initiator)
                         .build());
