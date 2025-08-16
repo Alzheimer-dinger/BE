@@ -41,5 +41,12 @@ public interface RelationRepository extends JpaRepository<Relation, String> {
 """)
     boolean existsByUsers(@Param("u1") User u1, @Param("u2") User u2);
 
-    Optional<Relation> findByPatientAndGuardian(User patient, User guardian);
+    @Query("""
+        SELECT r
+        FROM Relation r
+        WHERE (r.guardian = :u1 AND r.patient = :u2)
+            OR (r.guardian = :u2 AND r.patient = :u1)
+        ORDER BY r.createdAt DESC
+    """)
+    Optional<Relation> findByPatientAndGuardian(@Param("u1") User u1, @Param("u2") User u2);
 }
