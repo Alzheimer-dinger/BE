@@ -70,7 +70,7 @@ public class AnalysisController {
     )
     @GetMapping("/day")
     public BaseResponse<AnalysisDayResponse> getDayAnalysis(
-            @CurrentUser String userId, 
+            @RequestParam String userId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @NotNull LocalDate date) {
         return BaseResponse.onSuccess(analysisUseCase.getAnalysisDayData(userId, date));
     }

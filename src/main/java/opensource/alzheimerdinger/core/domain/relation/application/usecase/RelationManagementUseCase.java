@@ -64,14 +64,11 @@ public class RelationManagementUseCase {
         if(guardian.equals(patient))
             throw new RestApiException(INVALID_SELF_RELATION);
 
-//        relationService.findRelation(patient, guardian).forEach(rel -> {
-//            if (rel.getRelationStatus() == RelationStatus.ACCEPTED
-//                    || rel.getRelationStatus() == RelationStatus.REQUESTED) {
-//                throw new RestApiException(_EXIST_ENTITY);
-//            } else if (rel.getRelationStatus() == RelationStatus.DISCONNECTED) {
-//                rel.delete();
-//            }
-//        });
+        relationService.findRelation(patient, guardian).ifPresent(relation -> {
+            if(RelationStatus.ACCEPTED.equals(relation.getRelationStatus())
+                    || RelationStatus.REQUESTED.equals(relation.getRelationStatus()))
+                throw new RestApiException(_EXIST_ENTITY);
+        });
 
         relationService.upsert(patient, guardian, RelationStatus.REQUESTED, GUARDIAN);
         notificationUseCase.sendRequestNotification(patient, guardian);
@@ -88,7 +85,7 @@ public class RelationManagementUseCase {
         if (!relation.isMember(user))
             throw new RestApiException(_UNAUTHORIZED);
 
-        relation.resend(userId);
+        relation.resend();
         notificationUseCase.sendResendRequestNotification(user, relation);
     }
 

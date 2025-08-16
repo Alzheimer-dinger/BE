@@ -52,13 +52,9 @@ public class Relation extends BaseEntity {
         return patient.equals(user) ? guardian : patient;
     }
 
-    public void resend(String userId) {
+    public void resend() {
         this.relationStatus = RelationStatus.REQUESTED;
-
-        if(patient.getUserId().equals(userId))
-            this.initiator = Role.PATIENT;
-        else
-            this.initiator = Role.GUARDIAN;
+        this.initiator = Role.PATIENT;
     }
 
     public void update(RelationStatus status, Role initiator) {

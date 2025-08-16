@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 import static opensource.alzheimerdinger.core.global.exception.code.status.GlobalErrorStatus._NOT_FOUND;
 
@@ -67,5 +68,9 @@ public class RelationService {
         log.debug("[RelationService] existsByGuardianAndPatient guardianId={} patientId={} => {}",
                 guardian.getUserId(), patient.getUserId(), exists);
         return exists;
+    }
+
+    public Optional<Relation> findRelation(User patient, User guardian) {
+        return relationRepository.findByPatientAndGuardian(patient, guardian);
     }
 }

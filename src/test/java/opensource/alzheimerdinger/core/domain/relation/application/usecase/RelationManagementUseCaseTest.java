@@ -144,7 +144,7 @@ class RelationManagementUseCaseTest {
         RelationReconnectRequest req = new RelationReconnectRequest(relationId);
         relationManagementUseCase.resend(user.getUserId(), req);
 
-        verify(relation).resend(user.getUserId());
+        verify(relation).resend();
         verify(notificationUseCase).sendResendRequestNotification(user, relation);
     }
 
