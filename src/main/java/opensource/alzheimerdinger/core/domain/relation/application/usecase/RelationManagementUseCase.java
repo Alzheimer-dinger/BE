@@ -84,7 +84,8 @@ public class RelationManagementUseCase {
         Relation relation = relationService.findRelation(req.relationId());
         User user = userService.findUser(userId);
 
-        if (relation.getRelationStatus() != RelationStatus.DISCONNECTED)
+        if (relation.getRelationStatus() != RelationStatus.DISCONNECTED
+                && relation.getRelationStatus() != RelationStatus.REJECTED)
             throw new RestApiException(_NOT_FOUND);
         if (!relation.isMember(user))
             throw new RestApiException(_UNAUTHORIZED);
