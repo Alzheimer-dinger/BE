@@ -13,5 +13,5 @@ public record RelationResponse(
         Role relationType,
         LocalDateTime createdAt,
         RelationStatus status,
-        String initiator
+        Boolean isInitiator
 ) {}

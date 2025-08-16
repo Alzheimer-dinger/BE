@@ -29,7 +29,6 @@ import java.time.LocalDate;
 public class AnalysisController {
 
     private final AnalysisUseCase analysisUseCase;
-
  
     //특정 기간 분석 데이터 조회(그래프 활용)  
     @Operation(
@@ -48,7 +47,7 @@ public class AnalysisController {
     )
     @GetMapping("/period")
     public BaseResponse<AnalysisResponse> getAnalysisByPeriod(
-            @CurrentUser String userId,
+            @RequestParam String userId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @NotNull LocalDate start,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @NotNull LocalDate end) {
         return BaseResponse.onSuccess(analysisUseCase.getAnalysisPeriodData(userId, start, end));
@@ -90,7 +89,7 @@ public class AnalysisController {
     )
     @GetMapping("/emotion/monthly")
     public BaseResponse<AnalysisMonthlyEmotionResponse> getMonthlyEmotionAnalysis(
-            @CurrentUser String userId,
+            @RequestParam String userId,
             @RequestParam("month") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @NotNull LocalDate month) {
         return BaseResponse.onSuccess(analysisUseCase.getAnalysisMonthlyEmotionData(userId, month));
     }
@@ -112,7 +111,7 @@ public class AnalysisController {
     )
     @GetMapping("/report/latest")
     public BaseResponse<AnalysisReportResponse> getLatestReport(
-            @CurrentUser String userId,
+            @RequestParam String userId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @NotNull LocalDate periodEnd) {
         return BaseResponse.onSuccess(analysisUseCase.getLatestReport(userId, periodEnd));
     }

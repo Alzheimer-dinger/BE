@@ -22,7 +22,7 @@ public interface RelationRepository extends JpaRepository<Relation, String> {
                  ELSE opensource.alzheimerdinger.core.domain.user.domain.entity.Role.PATIENT END,
             relation.createdAt,
             relation.relationStatus,
-            relation.initiator
+            CASE WHEN :userId = relation.initiator THEN TRUE ELSE FALSE END
         )
         FROM Relation relation
         JOIN relation.patient patient
