@@ -41,7 +41,7 @@ public class TranscriptService {
     }
 
     public TranscriptDetailResponse getDetail(String userId, String sessionId) {
-        Transcript transcript = transcriptRepository.findById(sessionId)
+        Transcript transcript = transcriptRepository.findBySessionId((sessionId))
                 .filter(t -> t.getUserId().equals(userId))
                 .orElseThrow(() -> new RestApiException(_NOT_FOUND));
 
