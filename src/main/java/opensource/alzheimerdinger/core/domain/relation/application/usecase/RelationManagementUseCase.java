@@ -3,6 +3,7 @@ package opensource.alzheimerdinger.core.domain.relation.application.usecase;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import opensource.alzheimerdinger.core.domain.image.domain.service.ImageService;
 import opensource.alzheimerdinger.core.domain.notification.usecase.NotificationUseCase;
 import opensource.alzheimerdinger.core.domain.relation.application.dto.request.RelationConnectRequest;
 import opensource.alzheimerdinger.core.domain.relation.application.dto.request.RelationReconnectRequest;
@@ -16,6 +17,7 @@ import opensource.alzheimerdinger.core.global.exception.RestApiException;
 import opensource.alzheimerdinger.core.global.metric.UseCaseMetric;
 import org.springframework.stereotype.Service;
 
+import javax.management.relation.RelationException;
 import java.util.List;
 
 import static opensource.alzheimerdinger.core.domain.user.domain.entity.Role.GUARDIAN;
@@ -30,10 +32,28 @@ public class RelationManagementUseCase {
     private final RelationService relationService;
     private final UserService userService;
     private final NotificationUseCase notificationUseCase;
+    private final ImageService imageService;
 
     @UseCaseMetric(domain = "relation", value = "find", type = "query")
     public List<RelationResponse> findRelations(String userId) {
-        return relationService.findRelations(userId);
+        return relationService.findRelations(userId).stream()
+                .map(relation -> {
+                    User user = userService.findUser(relation.userId());
+                    String profileImageUrl = imageService.getProfileImageUrl(user);
+
+                    return new RelationResponse(
+                            relation.relationId(),
+                            relation.userId(),
+                            relation.name(),
+                            relation.patientCode(),
+                            relation.relationType(),
+                            relation.createdAt(),
+                            relation.status(),
+                            relation.isInitiator(),
+                            profileImageUrl
+                    );
+                })
+                .toList();
     }
 
     @UseCaseMetric(domain = "relation", value = "reply", type = "command")

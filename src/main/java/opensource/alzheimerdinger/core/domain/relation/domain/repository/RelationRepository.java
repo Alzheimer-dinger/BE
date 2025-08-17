@@ -14,24 +14,29 @@ public interface RelationRepository extends JpaRepository<Relation, String> {
 
     @Query("""
         SELECT new opensource.alzheimerdinger.core.domain.relation.application.dto.response.RelationResponse(
-            relation.relationId,
-            CASE WHEN :userId = patient.userId THEN guardian.userId ELSE patient.userId END,
-            CASE WHEN :userId = patient.userId THEN guardian.name ELSE patient.name END,
-            CASE WHEN :userId = patient.userId THEN guardian.patientCode ELSE patient.patientCode END,
-            CASE WHEN :userId = patient.userId THEN opensource.alzheimerdinger.core.domain.user.domain.entity.Role.GUARDIAN
-                 ELSE opensource.alzheimerdinger.core.domain.user.domain.entity.Role.PATIENT END,
-            relation.createdAt,
-            relation.relationStatus,
-            CASE WHEN :userId = relation.initiator THEN TRUE ELSE FALSE END
+          relation.relationId,
+          counter.userId,
+          counter.name,
+          counter.patientCode,
+          counter.role,
+          relation.createdAt,
+          relation.relationStatus,
+          (relation.initiator = :userId),
+          pi.fileKey
         )
         FROM Relation relation
         JOIN relation.patient patient
         JOIN relation.guardian guardian
-        WHERE patient.userId = :userId OR guardian.userId = :userId
-            AND patient.deletedAt IS NULL
+        JOIN User counter
+          ON (counter = patient OR counter = guardian) AND counter.userId <> :userId
+        LEFT JOIN ProfileImage pi
+          ON pi.user = counter
+        WHERE (patient.userId = :userId OR guardian.userId = :userId)
+          AND patient.deletedAt IS NULL
         ORDER BY relation.createdAt DESC
     """)
     List<RelationResponse> findRelation(@Param("userId") String userId);
+
 
     @Query("""
     SELECT COUNT(r) > 0

@@ -13,5 +13,6 @@ public record RelationResponse(
         Role relationType,
         LocalDateTime createdAt,
         RelationStatus status,
-        Boolean isInitiator
+        Boolean isInitiator,
+        String imageUrl
 ) {}
