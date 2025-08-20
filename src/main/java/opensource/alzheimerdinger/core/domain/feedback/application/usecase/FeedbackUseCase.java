@@ -7,6 +7,7 @@ import opensource.alzheimerdinger.core.domain.feedback.application.dto.request.S
 import opensource.alzheimerdinger.core.domain.feedback.domain.service.FeedbackService;
 import opensource.alzheimerdinger.core.domain.user.domain.entity.User;
 import opensource.alzheimerdinger.core.domain.user.domain.service.UserService;
+import opensource.alzheimerdinger.core.global.metric.UseCaseMetric;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,14 +17,10 @@ public class FeedbackUseCase {
 
     private final UserService userService;
     private final FeedbackService feedbackService;
-    private final MeterRegistry registry;
 
+    @UseCaseMetric(domain = "feedback", value = "save", type = "command")
     public void save(SaveFeedbackRequest request, String userId) {
-        registry.counter("domain_feedback_save_requests").increment(); // 호출 횟수
-        registry.timer("domain_feedback_save_duration", "domain", "feedback") // 실행 시간
-                .record(() -> {
-                    User user = userService.findUser(userId);
-                    feedbackService.save(request, user);
-                });
+        User user = userService.findUser(userId);
+        feedbackService.save(request, user);
     }
 }

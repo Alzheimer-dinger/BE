@@ -6,11 +6,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.domain.analysis.application.dto.response.AnalysisResponse;
 import opensource.alzheimerdinger.core.domain.analysis.application.dto.response.AnalysisDayResponse;
 import opensource.alzheimerdinger.core.domain.analysis.application.dto.response.AnalysisReportResponse;
+import opensource.alzheimerdinger.core.domain.analysis.application.dto.response.AnalysisMonthlyEmotionResponse;
 import opensource.alzheimerdinger.core.domain.analysis.application.usecase.AnalysisUseCase;
 import opensource.alzheimerdinger.core.global.annotation.CurrentUser;
 import opensource.alzheimerdinger.core.global.common.BaseResponse;
@@ -23,10 +25,10 @@ import java.time.LocalDate;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/analysis")
+@SecurityRequirement(name = "Bearer Authentication")
 public class AnalysisController {
 
     private final AnalysisUseCase analysisUseCase;
-
  
     //특정 기간 분석 데이터 조회(그래프 활용)  
     @Operation(
@@ -45,7 +47,7 @@ public class AnalysisController {
     )
     @GetMapping("/period")
     public BaseResponse<AnalysisResponse> getAnalysisByPeriod(
-            @CurrentUser String userId,
+            @RequestParam String userId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @NotNull LocalDate start,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @NotNull LocalDate end) {
         return BaseResponse.onSuccess(analysisUseCase.getAnalysisPeriodData(userId, start, end));
@@ -55,22 +57,41 @@ public class AnalysisController {
      //일별 감정 분석 데이터 조회 (달력용)     
     @Operation(
             summary = "일별 감정 분석 조회",
-            description = "특정 날짜의 감정 분석 데이터와 달력 표시용 월간 데이터를 반환합니다.",
+            description = "특정 날짜의 감정 분석 데이터를 반환합니다. 데이터가 없으면 hasData=false와 빈 값으로 응답합니다.",
             parameters = {
                     @Parameter(name = "date", description = "조회할 날짜 (YYYY-MM-DD)", required = true, example = "2024-01-15")
             },
             responses = {
                     @ApiResponse(responseCode = "200", description = "조회 성공",
                             content = @Content(schema = @Schema(implementation = AnalysisDayResponse.class))),
-                    @ApiResponse(responseCode = "400", description = "잘못된 날짜 형식", content = @Content),
-                    @ApiResponse(responseCode = "404", description = "데이터 없음", content = @Content)
+                    @ApiResponse(responseCode = "400", description = "잘못된 날짜 형식", content = @Content)
             }
     )
     @GetMapping("/day")
     public BaseResponse<AnalysisDayResponse> getDayAnalysis(
-            @CurrentUser String userId, 
+            @RequestParam String userId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @NotNull LocalDate date) {
         return BaseResponse.onSuccess(analysisUseCase.getAnalysisDayData(userId, date));
+    }
+
+    // 월간 감정 분석 요약 (달력용)
+    @Operation(
+            summary = "월간 감정 요약 조회",
+            description = "달력 표시용 월간 감정 요약 데이터를 반환합니다. 데이터가 없으면 빈 배열을 반환합니다.",
+            parameters = {
+                    @Parameter(name = "month", description = "조회 기준 날짜 (해당 달을 의미, YYYY-MM-DD)", required = true, example = "2024-01-15")
+            },
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "조회 성공",
+                            content = @Content(schema = @Schema(implementation = AnalysisMonthlyEmotionResponse.class))),
+                    @ApiResponse(responseCode = "400", description = "잘못된 날짜 형식", content = @Content)
+            }
+    )
+    @GetMapping("/emotion/monthly")
+    public BaseResponse<AnalysisMonthlyEmotionResponse> getMonthlyEmotionAnalysis(
+            @RequestParam String userId,
+            @RequestParam("month") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @NotNull LocalDate month) {
+        return BaseResponse.onSuccess(analysisUseCase.getAnalysisMonthlyEmotionData(userId, month));
     }
 
     
@@ -90,7 +111,7 @@ public class AnalysisController {
     )
     @GetMapping("/report/latest")
     public BaseResponse<AnalysisReportResponse> getLatestReport(
-            @CurrentUser String userId,
+            @RequestParam String userId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @NotNull LocalDate periodEnd) {
         return BaseResponse.onSuccess(analysisUseCase.getLatestReport(userId, periodEnd));
     }

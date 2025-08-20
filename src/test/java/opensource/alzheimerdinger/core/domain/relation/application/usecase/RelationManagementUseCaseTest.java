@@ -126,7 +126,7 @@ class RelationManagementUseCaseTest {
 
         relationManagementUseCase.send(guardianId, req);
 
-        verify(relationService).save(patient, guardian, RelationStatus.REQUESTED, Role.GUARDIAN);
+        verify(relationService).upsert(patient, guardian, RelationStatus.REQUESTED);
         verify(notificationUseCase).sendRequestNotification(patient, guardian);
     }
 
@@ -141,10 +141,10 @@ class RelationManagementUseCaseTest {
         when(relation.getRelationStatus()).thenReturn(RelationStatus.DISCONNECTED);
         when(relation.isMember(user)).thenReturn(false);
 
-        RelationReconnectRequest req = new RelationReconnectRequest(relationId, "guardianId");
+        RelationReconnectRequest req = new RelationReconnectRequest(relationId);
         relationManagementUseCase.resend(user.getUserId(), req);
 
-        verify(relation).resend(user.getUserId());
+        verify(relation).resend();
         verify(notificationUseCase).sendResendRequestNotification(user, relation);
     }
 
@@ -154,7 +154,7 @@ class RelationManagementUseCaseTest {
         when(relationService.findRelation("r1")).thenReturn(relation);
         when(relation.getRelationStatus()).thenReturn(RelationStatus.ACCEPTED);
 
-        RelationReconnectRequest req = new RelationReconnectRequest("r1", "guardianId");
+        RelationReconnectRequest req = new RelationReconnectRequest("r1");
 
         Throwable thrown = catchThrowable(() ->
                 relationManagementUseCase.resend("g1", req)
@@ -172,7 +172,7 @@ class RelationManagementUseCaseTest {
         when(relation.getRelationStatus()).thenReturn(RelationStatus.DISCONNECTED);
         when(relation.isMember(any(User.class))).thenReturn(true);
 
-        RelationReconnectRequest req = new RelationReconnectRequest("r1", "guardianId");
+        RelationReconnectRequest req = new RelationReconnectRequest("r1");
 
         Throwable thrown = catchThrowable(() ->
                 relationManagementUseCase.resend("g1", req)

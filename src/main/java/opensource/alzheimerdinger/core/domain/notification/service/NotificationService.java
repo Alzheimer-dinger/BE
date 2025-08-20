@@ -1,9 +1,6 @@
 package opensource.alzheimerdinger.core.domain.notification.service;
 
-import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.messaging.FirebaseMessagingException;
-import com.google.firebase.messaging.Message;
-import com.google.firebase.messaging.MessagingErrorCode;
+import com.google.firebase.messaging.*;
 import lombok.RequiredArgsConstructor;
 import opensource.alzheimerdinger.core.domain.notification.entity.Notification;
 import opensource.alzheimerdinger.core.domain.notification.repository.NotificationRepository;
@@ -19,14 +16,19 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
 
     public String sendNotification(String token, String title, String body, String userId) {
-        com.google.firebase.messaging.Notification fcmNotification = com.google.firebase.messaging.Notification.builder()
-                .setTitle(title)
-                .setBody(body)
+        WebpushConfig webPush = WebpushConfig.builder()
+                .putHeader("TTL", "86400")
+                .setNotification(new WebpushNotification(
+                        title,
+                        body,
+                        "https://api.alzheimerdinger.com/assets/logo.png"
+                ))
+                .setFcmOptions(WebpushFcmOptions.withLink("https://www.alzheimerdinger.com/call"))
                 .build();
 
         Message message = Message.builder()
                 .setToken(token)
-                .setNotification(fcmNotification)
+                .setWebpushConfig(webPush)
                 .build();
 
         User user = userService.findUser(userId);

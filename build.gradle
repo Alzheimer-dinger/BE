@@ -33,6 +33,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-batch'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation("org.springframework.boot:spring-boot-starter-aop")
 
     // Kafka
     implementation 'org.springframework.kafka:spring-kafka'

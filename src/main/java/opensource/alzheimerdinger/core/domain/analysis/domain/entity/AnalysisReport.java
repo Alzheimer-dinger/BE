@@ -6,21 +6,31 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import opensource.alzheimerdinger.core.domain.user.domain.entity.User;
 import opensource.alzheimerdinger.core.global.common.BaseEntity;
+import opensource.alzheimerdinger.core.domain.user.domain.entity.User;
 
 @Entity
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "analysis_report")
+@Table(name = "reports")
 public class AnalysisReport extends BaseEntity {
 
     @Id @Tsid
+    @Column(name = "id")
     private String analysisReportId;
 
-    private String report;
+    // Self reference to base report (nullable)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "base_report_id")
+    private AnalysisReport baseReport;
+
+    @Column(name = "session_id", nullable = false)
+    private String sessionId;
+
+    @Column(name = "content", columnDefinition = "TEXT")
+    private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

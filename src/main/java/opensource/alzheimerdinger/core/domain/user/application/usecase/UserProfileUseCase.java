@@ -5,6 +5,7 @@ import opensource.alzheimerdinger.core.domain.image.domain.service.ImageService;
 import opensource.alzheimerdinger.core.domain.user.application.dto.response.ProfileResponse;
 import opensource.alzheimerdinger.core.domain.user.domain.entity.User;
 import opensource.alzheimerdinger.core.domain.user.domain.service.UserService;
+import opensource.alzheimerdinger.core.global.metric.UseCaseMetric;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,6 +15,7 @@ public class UserProfileUseCase {
     private final UserService userService;
     private final ImageService imageService;
 
+    @UseCaseMetric(domain = "user-profile", value = "find-profile", type = "query")
     public ProfileResponse findProfile(String userId) {
         ProfileResponse profileDto = userService.findProfile(userId);
         User user = userService.findUser(userId);
@@ -24,7 +26,8 @@ public class UserProfileUseCase {
                 profileDto.name(),
                 profileDto.email(),
                 profileDto.gender(),
-                imageUrl
+                imageUrl,
+                profileDto.patientCode()
         );
     }
 }

@@ -6,11 +6,13 @@ import opensource.alzheimerdinger.core.domain.user.domain.entity.Role;
 import java.time.LocalDateTime;
 
 public record RelationResponse(
-        String counterId,
+        String relationId,
+        String userId,
         String name,
         String patientCode,
         Role relationType,
         LocalDateTime createdAt,
         RelationStatus status,
-        Role initiator
+        Boolean isInitiator,
+        String imageUrl
 ) {}

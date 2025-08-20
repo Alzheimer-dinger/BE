@@ -109,8 +109,8 @@ logging:
     org.apache.kafka: WARN
     org.springframework.kafka: INFO
 
-CORS:
-  allowed-origins: "localhost:5173"
-  allowed-methods: "GET,POST,PUT,DELETE,PATCH,OPTIONS"
-  allowed-headers: "Authorization"
+cors:
+  allowed-origins: "http://localhost:5173"
+  allowed-methods: "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+  allowed-headers: "Authorization,Content-Type,Accept,X-Requested-With,DNT,User-Agent,If-Modified-Since,Cache-Control,Range"
   max-age: 3600

@@ -60,10 +60,13 @@ fcm:
   prefix: /app/secret/
 
 springdoc:
+  api-docs:
+    enabled: true
   swagger-ui:
     groups-order: DESC # path, query, body, response 순서대로 출력
     tags-sorter: alpha # 태그를 알파벳 순으로 정렬
     operations-sorter: method # delete - get - patch - post - put 순으로 정렬
+    enabled: true
   paths-to-match:
     - /api/**
 
@@ -129,13 +132,13 @@ logging:
     org.springframework.security: DEBUG
     org.apache.kafka: WARN
     org.springframework.kafka: INFO
-    org.springframework.batch.core: DEBUG
-    org.springframework.jdbc.core: DEBUG
+    org.springframework.aop: DEBUG
+    opensource.alzheimerdinger.core.global.metric: DEBUG
 
 cors:
-  allowed-origins: "http://localhost:5173"
+  allowed-origins: "http://localhost:5173,http://localhost:8080,https://api.alzheimerdinger.com,https://alzheimerdinger.com,https://www.alzheimerdinger.com"
   allowed-methods: "GET,POST,PUT,PATCH,DELETE,OPTIONS"
-  allowed-headers: "Authorization,Content-Type,Accept"
+  allowed-headers: "Authorization,Content-Type,Accept,X-Requested-With,DNT,User-Agent,If-Modified-Since,Cache-Control,Range"
   max-age: 3600
 
 management:
@@ -146,7 +149,17 @@ management:
     web:
       exposure:
         include: health,info,prometheus
-
+  metrics:
+    tags:
+      app: alzheimerdinger-core
+      env: ${APP_ENV:local}
+    distribution:
+      percentiles-histogram:
+        ad.usecase.duration: true # AOP 타이머에 히스토그램 활성화 (p95/p99)
+      percentiles:
+        ad.usecase.duration: 0.5,0.9,0.95,0.99
+      slo:
+        http.server.requests: 50ms,100ms,200ms,500ms,1s,2s
   prometheus:
     metrics:
       export:

@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import opensource.alzheimerdinger.core.global.common.BaseEntity;
 
+import java.util.Objects;
+
 @Entity
 @Getter
 @Table(name = "users")
@@ -38,5 +40,13 @@ public class User extends BaseEntity {
 
     public void updateRole(Role role) {
         this.role = role;
+    }
+
+    public void updateProfile(String name, Gender gender, String encodedNewPassword) {
+        this.name = name;
+        this.gender = gender;
+        if (encodedNewPassword != null && !encodedNewPassword.isBlank()) {
+            this.password = encodedNewPassword;
+        }
     }
 }

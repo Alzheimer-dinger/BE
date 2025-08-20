@@ -14,25 +14,25 @@ import opensource.alzheimerdinger.core.global.common.BaseEntity;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "analysis_entries")
-public class Analysis extends BaseEntity {
+@Table(name = "emotion_analysis")
+public class EmotionAnalysis extends BaseEntity {
 
     @Id @Tsid
-    private String analysisId;
+    @Column(name = "id")
+    private String emotionId;
 
-    @Column(name = "transcript_id", nullable = false)
-    private String transcriptId;
+    @Column(name = "session_id", nullable = false)
+    private String sessionId;
 
-    @Column(nullable = false)
-    private double riskScore;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Column(nullable = false) private double happy;
     @Column(nullable = false) private double sad;
     @Column(nullable = false) private double angry;
     @Column(nullable = false) private double surprised;
     @Column(nullable = false) private double bored;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
 }
+
+

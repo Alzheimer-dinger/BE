@@ -8,15 +8,18 @@ public record ProfileResponse(
         String name,
         String email,
         Gender gender,
-        String imageUrl
+        String imageUrl,
+        String patientCode
 ) {
-    public static ProfileResponse create(User user) {
+    public static ProfileResponse create(User user, String imageUrl) {
         return new ProfileResponse(
                 user.getUserId(),
                 user.getName(),
                 user.getEmail(),
                 user.getGender(),
-                null
+                imageUrl,
+                user.getPatientCode()
         );
     }
+
 }
